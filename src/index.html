@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Fire Batch Payments Utility</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src data: https://cdn.jsdelivr.net https://fonts.gstatic.com; img-src 'self' 'unsafe-inline' data: https://cdn.jsdelivr.net; connect-src ws://localhost:3000; child-src 'self'" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.css">
+  </head>
+  <body>
+
+
+    <div>
+      <div class="ui right aligned grid">
+        <div class="left floated left aligned six wide column">
+          <div class="ui basic segment">
+            <h1 id="apptitle">&nbsp;</h1>
+            <p><strong>Batch Payments</strong></p>
+          </div>
+        </div>
+        <div class="right floated right aligned six wide column">
+          <div class="ui basic segment" style="cursor: pointer;">
+            <div class="title" id="viewconfiguration">
+              <i class="cog icon"></i>  Configuration
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ui placeholder segment">
+
+      <div class="ui grid">
+        <div class="four wide center aligned column">
+          <div class="ui basic segment">
+            <div class="ui icon header">
+              <i class="file alternate outline icon"></i>
+            </div>
+            <br/>
+            <div id="filedetails">
+              <div><b></b></div>
+              <div></div>
+              <div id="changefile" style="color: gray; cursor: pointer; font-weight: bold; font-size: smaller;">Change</div>
+            </div>
+            <button class="ui primary button" id="selectfile">Select Payment File</button>
+          </div>
+        </div>
+
+        <div class="one wide center aligned column"><i class="arrow right icon" style="margin-top: 85%;"></i></div>
+        
+        <div class="six wide center aligned column">
+          <div class="ui basic segment">
+            <div class="ui icon header">
+              <i class="columns icon"></i>
+            </div>
+            <br/>
+            <div id="accountdropdown" class="ui fluid selection dropdown">
+              <input type="hidden" name="ican">
+              <i class="dropdown icon"></i>
+              <div class="default text">Select Account...</div>
+              <div id="#accountItems" class="menu">
+              </div>
+            </div>
+          
+          </div>
+        </div>
+
+        <div class="one wide center aligned column"><i class="arrow right icon" style="margin-top: 85%;"></i></div>
+
+        <div class="four wide center aligned column">
+          <div class="ui basic segment">
+            <div class="ui icon header">
+              <i class="play icon"></i>
+            </div>
+            <br/>
+            <button class="ui primary button" id="processpayments">Process Payments</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>   
+      <div class="sixteen wide column">
+        <div class="ui basic segment">
+          <div class="app-info">Fire Batch Payments Utility v<span id="app-version">-.-.-</span></div>
+        </div>
+      </div>
+    </div>
+
+
+    <div id="select-file-modal" class="ui modal">
+      <i class="close icon"></i>
+      <div class="header">
+        Payment File Details
+      </div>
+      
+      <div style="padding: 18px;">
+        <div>These are the first few payments from the file - do all the values seem correctly assigned?</div>
+        <table id="payments-preview" class="ui celled table" >
+          <thead>
+            <tr><th>Name</th>
+            <th>IBAN</th>
+            <th>Ref</th>
+            <th class="right aligned">Amount</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td data-label="Name">&nbsp;</td>
+              <td data-label="IBAN">&nbsp;</td>
+              <td data-label="Ref">&nbsp;</td>
+              <td data-label="Amount" class="right aligned">&nbsp;</td>
+            </tr>
+            <tr>
+              <td data-label="Name">&nbsp;</td>
+              <td data-label="IBAN">&nbsp;</td>
+              <td data-label="Ref">&nbsp;</td>
+              <td data-label="Amount" class="right aligned">&nbsp;</td>
+            </tr>
+
+          </tbody>
+        </table>
+        <div id="numrowsnotshown"></div>
+        </div>
+
+
+      <div class="actions">
+        <div id="payment-file-preview-not-ok" class="ui black deny button">
+          Cancel
+        </div>
+        <div id="payment-file-preview-ok" class="ui positive right labeled icon button">
+          Looks good
+          <i class="checkmark icon"></i>
+        </div>
+      </div>
+    </div>
+
+
+    
+
+    <div id="configuration-modal" class="ui modal">
+
+      
+      <div class="content">
+        <div class="ui message">
+          <p>Enter the details of your Fire API Token here. This token must have at least account and batch processing permissions.</p>
+        </div>
+        <form class="ui form">
+          <div class="field">
+            <label>Client ID</label>
+            <input type="text" id="clientId">
+          </div>
+          <div class="field">
+            <label>Client Key</label>
+            <input type="password" id="clientKey">
+          </div>
+          <div class="field">
+            <label>Refresh Token</label>
+            <input type="text" id="refreshToken">
+          </div>
+          <button class="ui button" id="saveconfiguration">Save Configuration</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="errors-modal" class="ui modal">
+      <div class="header">
+        Errors found in file
+      </div>
+      <div class="content">
+        
+        <div class="ui message">
+          <p>There were problems with the file. Please correct these and upload a new payment file.</p>
+          <p/>
+          <ul id="errorlist"></ul>
+        </div>
+
+      </div>
+
+      <div class="actions">
+        <div id="error-modal-ok" class="ui black deny button">
+          OK
+        </div>
+        
+      </div>
+    </div>
+
+
+    <div id="waiting-for-approval" class="ui modal">
+      <div class="header">
+        Waiting for Batch Approval.
+      </div>
+      
+      <div class="content">
+        <i id="batch-processing" class="ui  circle notch loading icon"></i>
+        <i id="batch-ok" class="ui  green check circle icon" style="display: none;"></i>
+        <i id="batch-fail" class="ui  red times circle icon" style="display: none;"></i>
+
+        <span id="loading-text" class="ui text">Awaiting Approval...</span>
+        
+      </div>
+      <div id="waiting-for-approval-actions" style="display: none;" class="actions">
+        <div id="waiting-for-approval-modal-ok" class="ui black deny button">
+          OK
+        </div>
+        
+      </div>
+    </div>
+
+
+    <div id="processing-modal" class="ui modal">
+      <div class="header">
+        Processing Payments... 
+      </div>
+      
+      <div class="content">
+        <div class="ui progress" id="progressbar">
+          <div class="bar">
+            <div class="progress"></div>
+          </div>
+          <div class="label"></div>
+        </div>
+
+      </div>
+    </div>
+  
+<!--
+
+  
+  
+-->
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.js"></script>
+
+  </body>
+</html>
