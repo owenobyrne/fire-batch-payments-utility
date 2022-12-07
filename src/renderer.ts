@@ -15,6 +15,7 @@ let mSourceAccountIBAN:string = "";
 let mFileName: string = "";
 let mFileCurrency:string = "";
 let mErrorsOccurred: string = "";
+let mBatchName: string = "";
 
 document.addEventListener('DOMContentLoaded', pageLoaded);
 
@@ -37,36 +38,24 @@ function clearBatchRunDetails() {
     mFileName = "";
     mFileCurrency = "";
     mErrorsOccurred = "";
+    mBatchName = "";
 
     $("#selectfile").show();
     $("#filedetails").hide();
+
     populateAccountDropdown(mAllAccounts, null);
+    
+    // disable this until the file is ready
     $("#processpayments").prop('disabled', true);
 }
 
 function pageLoaded(){
     clearBatchRunDetails();
 
-    $('#settings').accordion();
-
-    $(".ui.calendar").calendar({
-        monthFirst: false,
-        type: 'date',
-        formatter: {
-            date: function (date : Date, settings : any) {
-            if (!date) return '';
-            var day = date.getDate();
-            var month = date.getMonth() + 1;
-            var year = date.getFullYear();
-            return year + "-" + pad(month, 2) + "-" + pad(day, 2);
-            }
-        }
-    })
-
     $('#progressbar').progress();
-
     $('.ui.dropdown').dropdown();
 
+    $("#selectfile").prop('disabled', true);
     window.api.send('page-contents-loaded',"I'm ready");
 }
 
@@ -100,6 +89,7 @@ window.api.receive("file-selected-and-parsed", function(result: any) {
             mNumPaymentsInHeader = result.paymentFileReportNumPayments;
             mValuePaymentsInHeader = result.paymentFileReportValuePayments;
             mFileName = result.paymentFile;
+            mBatchName = result.batchName;
             mSourceAccountIBAN = result.paymentFileSourceIBAN;
 
             let paymentsPreview:any = result.paymentsPreview;
@@ -172,7 +162,7 @@ $("#processpayments").on('click', function (event : any) {
     var selectedAccount:number =  $('#accountdropdown').dropdown("get value");
     $('#processing-modal').modal("show")
     
-    window.api.send("run-batch", { ican: selectedAccount } ); 
+    window.api.send("run-batch", { ican: selectedAccount, batchName: mBatchName } ); 
 });
 
 
@@ -184,8 +174,15 @@ $("#viewconfiguration").on('click', function (event : any) {
 
 $("#saveconfiguration").on('click', function (event : any) {
     event.preventDefault();
-    $("#saveconfiguration").addClass("loading");
-    window.api.send("save-configuration", { configs : { clientId: $("#clientId").val(), clientKey: $("#clientKey").val(), refreshToken: $("#refreshToken").val() }} ); 
+    if ($("#clientId").val().length == 36 && $("#clientKey").val().length == 36 && $("#refreshToken").val().length ==36 ) {
+        $("#saveconfiguration").addClass("loading");
+        window.api.send("save-configuration", { configs : { clientId: $("#clientId").val(), clientKey: $("#clientKey").val(), refreshToken: $("#refreshToken").val() }} );     
+    } else {
+        $("#invalidtoken").show();
+        setTimeout(function() {
+            $("#invalidtoken").hide();
+        }, 3000);
+    }
 });
 
 $("#waiting-for-approval-modal-ok").on("click", function(event: any) {
@@ -200,6 +197,7 @@ $("#waiting-for-approval-modal-ok").on("click", function(event: any) {
 window.api.receive("configuration-saved", function(result : any) {
     $("#saveconfiguration").removeClass("loading");
     $('#configuration-modal').modal("hide")
+    $("#selectfile").prop('disabled', false);
     window.api.send('get-accounts');
 });
 
@@ -211,8 +209,9 @@ window.api.receive("configs", function(version: string, configs : Configuration)
     $("#app-version").text(version);
 
     if (configs.clientId.length != 36) {
-        $('#settings').accordion("open", 0);
+        $('#configuration-modal').modal("show");
     } else {
+        $("#selectfile").prop('disabled', false);
         window.api.send('get-accounts');
     }
 });
@@ -254,7 +253,7 @@ window.api.receive("batch-status", function(result : any) {
         $("#loading-text").text("Awaiting Batch Approval...");
         
     } else if (result.status == "READY_FOR_PROCESSING") {
-        $("#loading-text").text("Batch Approved. Processing transfers...");
+        $("#loading-text").text("Batch Approved. Processing transfers. You can close this app if you wish - transfers will continue in the background.");
 
     } else if (result.status == "COMPLETE") {
         $("#batch-processing").hide();
@@ -305,7 +304,10 @@ const populateAccountDropdown = function(accounts: Paths.GetAccountById.Response
         
     })
 
-    console.log({ values: values});
-    $('.ui.dropdown').dropdown({ values: values });
+    console.log(values);
+    $('.ui.dropdown').dropdown({ placeholder: "Select Account...", values: values });
+    if (!selectedAccount) {
+        $('.ui.dropdown').dropdown("restore placeholder text");
+    }
 }
 

@@ -369,7 +369,7 @@ ipcMain.on("save-configuration", function (event, arg) {
 ipcMain.on("run-batch", function (event, arg) {
 
   let batchDetails: Paths.CreateBatchPayment.RequestBody = {
-    batchName: "Batch Utility", 
+    batchName: arg.batchName, 
     currency: fileCurrency,
     type: 'BANK_TRANSFER'
   };

@@ -4,13 +4,13 @@
     <GrpHdr>
       <MsgId>SEPA</MsgId>
       <CreDtTm>2022-12-02T14:07:22</CreDtTm>
-      <NbOfTxs>3</NbOfTxs>
-      <CtrlSum>3.00</CtrlSum>
+      <NbOfTxs>2</NbOfTxs>
+      <CtrlSum>1.00</CtrlSum>
       <InitgPty>
         <Id>
           <OrgId>
             <Othr>
-              <Id>IEXXSCTZZZZZZ</Id>
+              <Id>ACME CO</Id>
             </Othr>
           </OrgId>
         </Id>
@@ -19,8 +19,8 @@
     <PmtInf>
       <PmtInfId>Payroll</PmtInfId>
       <PmtMtd>TRF</PmtMtd>
-      <NbOfTxs>3</NbOfTxs>
-      <CtrlSum>3.00</CtrlSum>
+      <NbOfTxs>2</NbOfTxs>
+      <CtrlSum>1.00</CtrlSum>
       <PmtTpInf>
         <SvcLvl>
           <Cd>SEPA</Cd>
@@ -43,10 +43,10 @@
       </DbtrAgt>
       <CdtTrfTxInf>
         <PmtId>
-          <EndToEndId>Expenses</EndToEndId>
+          <EndToEndId>Dec Payroll</EndToEndId>
         </PmtId>
         <Amt>
-          <InstdAmt Ccy="EUR">1.00</InstdAmt>
+          <InstdAmt Ccy="EUR">0.50</InstdAmt>
         </Amt>
         <CdtrAgt>
           <FinInstnId>
@@ -64,31 +64,10 @@
       </CdtTrfTxInf>
       <CdtTrfTxInf>
         <PmtId>
-          <EndToEndId>Expenses</EndToEndId>
+          <EndToEndId>Dec Payroll</EndToEndId>
         </PmtId>
         <Amt>
-          <InstdAmt Ccy="EUR">1.00</InstdAmt>
-        </Amt>
-        <CdtrAgt>
-          <FinInstnId>
-            <BIC>CPAYIE2D</BIC>
-          </FinInstnId>
-        </CdtrAgt>
-        <Cdtr>
-          <Nm>Owen O Byrne</Nm>
-        </Cdtr>
-        <CdtrAcct>
-          <Id>
-            <IBAN>IE69CPAY99119998765432</IBAN>
-          </Id>
-        </CdtrAcct>
-      </CdtTrfTxInf>
-      <CdtTrfTxInf>
-        <PmtId>
-          <EndToEndId>Expenses2</EndToEndId>
-        </PmtId>
-        <Amt>
-          <InstdAmt Ccy="EUR">1.00</InstdAmt>
+          <InstdAmt Ccy="EUR">0.50</InstdAmt>
         </Amt>
         <CdtrAgt>
           <FinInstnId>
