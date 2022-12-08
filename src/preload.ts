@@ -11,7 +11,7 @@ contextBridge.exposeInMainWorld(
     "api", {
         send: (channel : string, data : any) => {
             // whitelist channels
-            let validChannels = ["select-file", "page-contents-loaded", "run-batch", "save-configuration", "get-accounts"];
+            let validChannels = ["select-file", "page-contents-loaded", "run-batch", "save-configuration", "get-accounts", "beta-agreement"];
             if (validChannels.includes(channel)) {
                 console.log(`Sending a message to ${channel}...`);
                 ipcRenderer.send(channel, data);

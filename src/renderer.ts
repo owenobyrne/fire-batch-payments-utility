@@ -56,6 +56,7 @@ function pageLoaded(){
     $('.ui.dropdown').dropdown();
 
     $("#selectfile").prop('disabled', true);
+
     window.api.send('page-contents-loaded',"I'm ready");
 }
 
@@ -64,6 +65,13 @@ function pageLoaded(){
 $("#selectfile").on('click', function (event : any) {
     event.preventDefault(); 
     window.api.send("select-file"); 
+
+});
+
+$("#beta-modal-ok").on('click', function (event : any) {
+    event.preventDefault(); 
+    window.api.send("beta-agreement");
+    $("#beta-modal").modal("hide");
 
 });
 
@@ -201,12 +209,14 @@ window.api.receive("configuration-saved", function(result : any) {
     window.api.send('get-accounts');
 });
 
-window.api.receive("configs", function(version: string, configs : Configuration) {
+window.api.receive("configs", function(version: string, showBeta: boolean, configs : Configuration) {
     $("#clientId").val(configs.clientId);
     $("#clientKey").val(configs.clientKey);
     $("#refreshToken").val(configs.refreshToken); 
     
     $("#app-version").text(version);
+
+    if (showBeta) { $("#beta-modal").modal("show"); }
 
     if (configs.clientId.length != 36) {
         $('#configuration-modal').modal("show");

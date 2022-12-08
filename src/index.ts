@@ -42,7 +42,7 @@ const store = new Store({
     clientId: '',
     clientKey: '',
     refreshToken: '',
-    selectedAccount: null
+    betaAgreementDate: null
   }
 });
 
@@ -64,7 +64,7 @@ const createWindow = (): void => {
   // Create the browser window.
 
   mainWindow = new BrowserWindow({
-    height: 480,
+    height: 500,
     width: 1000,
     webPreferences: {
       nodeIntegration: false, // is default value after Electron v5
@@ -82,11 +82,18 @@ const createWindow = (): void => {
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: 'deny' };
+  });
+
   Bugsnag.notify("Loaded");
   
   // Open the DevTools.
   if (isDev) { mainWindow.webContents.openDevTools(); }
 };
+
+
 
 // Create the Application's main menu
 const template: any = [{
@@ -202,6 +209,9 @@ getClient()
     // no problems here. 
   });
 
+  
+
+  
 
 ipcMain.on("page-contents-loaded", function (event, arg) {
   
@@ -213,7 +223,7 @@ ipcMain.on("page-contents-loaded", function (event, arg) {
  
   if (isDev) { console.log(JSON.stringify(store.store)); }
 
-  mainWindow.webContents.send("configs", version, apiToken);   
+  mainWindow.webContents.send("configs", version, (store.get("betaAgreementDate") ? false : true ), apiToken);   
 });
 
 
@@ -326,7 +336,7 @@ ipcMain.on("get-accounts", function (event, arg) {
      
       if ((res.data as Paths.GetAccounts.Responses.$200).accounts) {
         mAccounts = (res.data as Paths.GetAccounts.Responses.$200).accounts;
-        mainWindow.webContents.send("accounts", mAccounts, store.get("selectedAccount"));   
+        mainWindow.webContents.send("accounts", mAccounts, null);   
 
       } 
   
@@ -343,7 +353,9 @@ ipcMain.on("get-accounts", function (event, arg) {
   });
 });
 
-
+ipcMain.on("beta-agreement", function (event, arg) {
+  store.set("betaAgreementDate", new Date().toISOString());
+});
 
 ipcMain.on("save-configuration", function (event, arg) {
   const configs : Configuration = arg.configs;
