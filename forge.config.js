@@ -1,7 +1,9 @@
 const path = require('path');
+const { fileURLToPath } = require('url');
 
 const config = {
     "packagerConfig": {
+      "icon": "assets/app-icon",
       "osxSign": {
         "identity": "Developer ID Application: Owen O Byrne (54A3A3X8RX)",
         'gatekeeper-assess': false,
@@ -30,11 +32,15 @@ const config = {
         "platforms": ['darwin'],
         "config": { 
             name: 'fire-batch-payments-utility',
-            icon: "assets/MacOS_Icon.icns",
-            background: "assets/DMG_Background.tiff",
+            icon: "assets/app-icon.icns",
+            background: "assets/dmg-background.tiff",
             debug: true,
             format: 'ULFO',
-            additionalDMGOptions: {}
+            contents: [
+              { x: 150, y: 250, type: "file", path: path.resolve(__dirname, "out/Fire Batch Payments Utility-darwin-x64/Fire Batch Payments Utility.app")},
+              { x: 400, y: 250, type: "link", path: "/Applications", name: "Applications" }
+            ],
+            additionalDMGOptions: { }
         }
       }
     ],
