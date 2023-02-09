@@ -266,8 +266,8 @@ ipcMain.on("select-file", function (event, arg) {
     }
 
     if (parseInt(pmtInfXml["NbOfTxs"]) != numPaymentsInHeader) {
-      errors.push("Number of payments in header doesn't match number of payments in PmtInf block");
-      console.error("Number of payments in header doesn't match number of payments in PmtInf block");
+      errors.push(`Number of payments in header [${numPaymentsInHeader}] doesn't match number of payments in PmtInf block [${pmtInfXml["NbOfTxs"]}]`);
+      console.error(`Number of payments in header [${numPaymentsInHeader}] doesn't match number of payments in PmtInf block [${pmtInfXml["NbOfTxs"]}]`);
     }
 
     if (parseFloat(pmtInfXml["CtrlSum"]) != valuePaymentsInHeader) {
@@ -276,22 +276,50 @@ ipcMain.on("select-file", function (event, arg) {
     }
 
     let paymentsXml:any = pmtInfXml["CdtTrfTxInf"];
-
-    if (paymentsXml.length != numPaymentsInHeader) {
-      errors.push("Number of payments in header doesn't match number of payments");
-      console.error("Number of payments in header doesn't match number of payments");
-    }
-
     let sumPaymentValue: number = 0;
-    
-    paymentsXml.forEach((paymentXml:any) => {
-      console.log(paymentXml);
 
-      let amount:number = parseFloat(paymentXml["Amt"]["InstdAmt"]["#text"]);
-      let ref:string = paymentXml["PmtId"]["EndToEndId"];
-      let name:string = paymentXml["Cdtr"]["Nm"];
-      let iban:string = paymentXml["CdtrAcct"]["Id"]["IBAN"];
-      let bic:string = paymentXml["CdtrAgt"]["FinInstnId"]["BIC"];
+    if (Array.isArray(paymentsXml) {
+      // more than one payment.
+
+      if (paymentsXml.length != numPaymentsInHeader) {
+        errors.push(`Number of payments in header [${numPaymentsInHeader}] doesn't match number of payments [${paymentsXml.length}]`);
+        console.error(`Number of payments in header [${numPaymentsInHeader}] doesn't match number of payments [${paymentsXml.length}]`);
+      }
+  
+      paymentsXml.forEach((paymentXml:any) => {
+        console.log(paymentXml);
+
+        let amount:number = parseFloat(paymentXml["Amt"]["InstdAmt"]["#text"]);
+        let ref:string = paymentXml["PmtId"]["EndToEndId"];
+        let name:string = paymentXml["Cdtr"]["Nm"];
+        let iban:string = paymentXml["CdtrAcct"]["Id"]["IBAN"];
+        let bic:string = paymentXml["CdtrAgt"]["FinInstnId"]["BIC"];
+
+        sumPaymentValue += amount;
+
+        payments.push({
+          name: name, 
+          iban: iban, 
+          ref: ref, 
+          amount: amount
+        });
+        
+      });
+    } else {
+      // only one payment
+      
+      if (numPaymentsInHeader != 1) {
+        errors.push(`Number of payments in header [${numPaymentsInHeader}] doesn't match number of payments [1]`);
+        console.error(`Number of payments in header [${numPaymentsInHeader}] doesn't match number of payments [1]`);
+      }
+  
+      console.log(paymentsXml);
+
+      let amount:number = parseFloat(paymentsXml["Amt"]["InstdAmt"]["#text"]);
+      let ref:string = paymentsXml["PmtId"]["EndToEndId"];
+      let name:string = paymentsXml["Cdtr"]["Nm"];
+      let iban:string = paymentsXml["CdtrAcct"]["Id"]["IBAN"];
+      let bic:string = paymentsXml["CdtrAgt"]["FinInstnId"]["BIC"];
 
       sumPaymentValue += amount;
 
@@ -302,7 +330,8 @@ ipcMain.on("select-file", function (event, arg) {
         amount: amount
       });
       
-    });
+  
+    }
 
     if (sumPaymentValue != valuePaymentsInHeader) {
       errors.push("Value of payments in header doesn't match value of payments");

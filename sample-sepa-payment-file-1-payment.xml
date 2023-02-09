@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03" xmlns:xsi="http://www.w3.org/2001/ XMLSchemainstance">
+  <CstmrCdtTrfInitn>
+    <GrpHdr>
+      <MsgId>SEPA</MsgId>
+      <CreDtTm>2022-12-02T14:07:22</CreDtTm>
+      <NbOfTxs>1</NbOfTxs>
+      <CtrlSum>1.00</CtrlSum>
+      <InitgPty>
+        <Id>
+          <OrgId>
+            <Othr>
+              <Id>ACME CO</Id>
+            </Othr>
+          </OrgId>
+        </Id>
+      </InitgPty>
+    </GrpHdr>
+    <PmtInf>
+      <PmtInfId>Payroll</PmtInfId>
+      <PmtMtd>TRF</PmtMtd>
+      <NbOfTxs>1</NbOfTxs>
+      <CtrlSum>1.00</CtrlSum>
+      <PmtTpInf>
+        <SvcLvl>
+          <Cd>SEPA</Cd>
+        </SvcLvl>
+      </PmtTpInf>
+      <ReqdExctnDt>2022-12-02</ReqdExctnDt>
+      <Dbtr>
+        <Nm>Owen O Byrne</Nm>
+      </Dbtr>
+      <DbtrAcct>
+        <Id>
+          <IBAN>IE44CPAY99119977900794</IBAN>
+        </Id>
+        <Ccy>EUR</Ccy>
+      </DbtrAcct>
+      <DbtrAgt>
+        <FinInstnId>
+          <BIC>CPAYIE2D</BIC>
+        </FinInstnId>
+      </DbtrAgt>
+      <CdtTrfTxInf>
+        <PmtId>
+          <EndToEndId>Dec Payroll</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="EUR">1.00</InstdAmt>
+        </Amt>
+        <CdtrAgt>
+          <FinInstnId>
+            <BIC>CPAYIE2D</BIC>
+          </FinInstnId>
+        </CdtrAgt>
+        <Cdtr>
+          <Nm>Owen O Byrne</Nm>
+        </Cdtr>
+        <CdtrAcct>
+          <Id>
+            <IBAN>IE69CPAY99119998765432</IBAN>
+          </Id>
+        </CdtrAcct>
+      </CdtTrfTxInf>
+    </PmtInf>
+  </CstmrCdtTrfInitn>
+</Document>

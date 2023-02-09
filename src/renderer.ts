@@ -77,6 +77,7 @@ $("#beta-modal-ok").on('click', function (event : any) {
 
 window.api.receive("file-selected-and-parsed", function(result: any) {
     console.log(result);
+    $("#errorlist").html("");
 
     if (result.errors.length > 0) {
         result.errors.forEach((error: string) => {
@@ -107,6 +108,7 @@ window.api.receive("file-selected-and-parsed", function(result: any) {
                 " in " + result.paymentFileReportNumPayments + " payment(s)");
 
             let i:number = 0;
+            
             $('#select-file-modal table#payments-preview tbody tr').each(function() {
                 if (i<paymentsPreview.length) {
                     $(this.cells[0]).text(paymentsPreview[i]["name"]);
@@ -115,6 +117,12 @@ window.api.receive("file-selected-and-parsed", function(result: any) {
                     $(this.cells[3]).text(numberFormat.format(paymentsPreview[i]["amount"]));
                     i++;
 
+                } else {
+                    $(this.cells[0]).text(" ");
+                    $(this.cells[1]).text(" ");
+                    $(this.cells[2]).text(" ");
+                    $(this.cells[3]).text(" ");
+                    i++;
                 }
             });
 
