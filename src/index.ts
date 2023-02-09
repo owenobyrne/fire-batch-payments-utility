@@ -278,7 +278,7 @@ ipcMain.on("select-file", function (event, arg) {
     let paymentsXml:any = pmtInfXml["CdtTrfTxInf"];
     let sumPaymentValue: number = 0;
 
-    if (Array.isArray(paymentsXml) {
+    if (Array.isArray(paymentsXml)) {
       // more than one payment.
 
       if (paymentsXml.length != numPaymentsInHeader) {
