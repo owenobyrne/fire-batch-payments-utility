@@ -9,9 +9,9 @@ import { Components, Paths } from './types/fire-business-api';
 declare var $ : any;
 let mAllAccounts: Paths.GetAccountById.Responses.$200[] = [];
 
-let mNumPaymentsInHeader:number = 0;
-let mValuePaymentsInHeader:number = 0;
-let mSourceAccountIBAN:string = "";
+let mNumPayments:number = 0;
+let mValuePayments:number = 0;
+let mSourceAccountDetails:string = "";
 let mFileName: string = "";
 let mFileCurrency:string = "";
 let mErrorsOccurred: string = "";
@@ -32,9 +32,9 @@ let getISODate = function(date: Date) {
 }
 
 function clearBatchRunDetails() {
-    mNumPaymentsInHeader = 0;
-    mValuePaymentsInHeader = 0;
-    mSourceAccountIBAN = "";
+    mNumPayments = 0;
+    mValuePayments = 0;
+    mSourceAccountDetails = "";
     mFileName = "";
     mFileCurrency = "";
     mErrorsOccurred = "";
@@ -95,11 +95,11 @@ window.api.receive("file-selected-and-parsed", function(result: any) {
             });
 
             mFileCurrency = result.paymentFileCurrency;
-            mNumPaymentsInHeader = result.paymentFileReportNumPayments;
-            mValuePaymentsInHeader = result.paymentFileReportValuePayments;
+            mNumPayments = result.paymentFileReportNumPayments;
+            mValuePayments = result.paymentFileReportValuePayments;
             mFileName = result.paymentFile;
             mBatchName = result.batchName;
-            mSourceAccountIBAN = result.paymentFileSourceIBAN;
+            mSourceAccountDetails = result.paymentFileSourceIBAN;
 
             let paymentsPreview:any = result.paymentsPreview;
 
@@ -112,7 +112,7 @@ window.api.receive("file-selected-and-parsed", function(result: any) {
             $('#select-file-modal table#payments-preview tbody tr').each(function() {
                 if (i<paymentsPreview.length) {
                     $(this.cells[0]).text(paymentsPreview[i]["name"]);
-                    $(this.cells[1]).text(paymentsPreview[i]["iban"]);
+                    $(this.cells[1]).text((mFileCurrency == "GBP" ? paymentsPreview[i]["sortCode"] + " / " + paymentsPreview[i]["accountNumber"] : paymentsPreview[i]["iban"]));
                     $(this.cells[2]).text(paymentsPreview[i]["ref"]);
                     $(this.cells[3]).text(numberFormat.format(paymentsPreview[i]["amount"]));
                     i++;
@@ -126,10 +126,10 @@ window.api.receive("file-selected-and-parsed", function(result: any) {
                 }
             });
 
-            if (mNumPaymentsInHeader > 2) {
-                $("#numrowsnotshown").text((mNumPaymentsInHeader - 2) + " more payment(s) not shown.");
+            if (mNumPayments > 2) {
+                $("#numrowsnotshown").text(result.fileType + " detected / " + (mNumPayments - 2) + " more payment(s) not shown.");
             } else {
-                $("#numrowsnotshown").text("");
+                $("#numrowsnotshown").text(result.fileType + " detected.");
             }
             $('#select-file-modal').modal("show")
 
@@ -153,19 +153,24 @@ $("#payment-file-preview-ok").on("click", function(event: any) {
         currency: mFileCurrency
     });
 
-    $("#filedetails>div:eq(1)").text(numberFormat.format(mValuePaymentsInHeader) + " in " + mNumPaymentsInHeader + " payment(s)");
+    $("#filedetails>div:eq(1)").text(numberFormat.format(mValuePayments) + " in " + mNumPayments + " payment(s)");
     $("#filedetails").show();
     
 
     $('#select-file-modal').modal("hide")
 
     let accountsInFileCurrency: Paths.GetAccountById.Responses.$200[] = mAllAccounts.filter((account) => {
-        return account.currency.code == mFileCurrency;
+        return account.currency.code.toLowerCase() == mFileCurrency.toLowerCase();
     });
 
-    let selectedAccount: Paths.GetAccountById.Responses.$200 = mAllAccounts.filter((account) => {
-        return account.ciban == mSourceAccountIBAN;
-    })[0];
+    let selectedAccount: Paths.GetAccountById.Responses.$200;
+    if (!mSourceAccountDetails) {
+        selectedAccount = accountsInFileCurrency[0];
+    } else {
+        selectedAccount = accountsInFileCurrency.filter((account) => {
+            return account.ciban == mSourceAccountDetails;
+        })[0];    
+    }
 
     populateAccountDropdown(accountsInFileCurrency, selectedAccount.ican);
     $("#processpayments").prop('disabled', false);
@@ -244,9 +249,9 @@ window.api.receive("payment-added-to-batch-event", function(params : any) {
     }
     
     $("#progressbar")
-        .progress("set total", mNumPaymentsInHeader)
-        .progress("set progress", mNumPaymentsInHeader - params.remainingPayments)
-        .progress("set label", `Processing ${mNumPaymentsInHeader - params.remainingPayments} of ${mNumPaymentsInHeader} payments... ${mErrorsOccurred}`);
+        .progress("set total", mNumPayments)
+        .progress("set progress", mNumPayments - params.remainingPayments)
+        .progress("set label", `Processing ${mNumPayments - params.remainingPayments} of ${mNumPayments} payments... ${mErrorsOccurred}`);
 
     if (params.remainingPayments == 0) {
         $('#processing-modal').modal("hide")

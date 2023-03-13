@@ -1,7 +1,7 @@
 {
   "name": "fire-batch-payments-utility",
   "productName": "Fire Batch Payments Utility",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Utility Application to process files of payments with Fire",
   "main": ".webpack/main",
   "scripts": {

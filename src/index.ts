@@ -23,8 +23,8 @@ Bugsnag.start({
 })
 
 
-let numPaymentsInHeader:number = 0;
-let valuePaymentsInHeader:number = 0;
+let numPayments:number = 0;
+let valuePayments:number = 0;
 let sourceAccountIBAN:string = "";
 let fileCurrency:string = "";
 let payments: any = [];
@@ -211,46 +211,16 @@ getClient()
 
   
 
-  
-
-ipcMain.on("page-contents-loaded", function (event, arg) {
-  
-  const apiToken : Configuration = {
-    clientId: store.get('clientId'),
-    clientKey: store.get('clientKey'),
-    refreshToken: store.get('refreshToken')
-  };
- 
-  if (isDev) { console.log(JSON.stringify(store.store)); }
-
-  mainWindow.webContents.send("configs", version, (store.get("betaAgreementDate") ? false : true ), apiToken);   
-});
-
-
-ipcMain.on("select-file", function (event, arg) {
-  let paymentFile:string = "";
+const parsePacsFile = function(strSelectedFile: string) {
   let errors:string[] = [];
 
-  const filesSelected:string[] = dialog.showOpenDialogSync({ properties: ['openFile'] });
-  if (filesSelected) {
-    paymentFile = filesSelected[0];
-  }
-
-  numPaymentsInHeader = 0;
-  valuePaymentsInHeader = 0;
-  sourceAccountIBAN = "";
-  fileCurrency = "";
-  batchName = "";
-  payments = [];
-
   try {
-    const strModLabelsEnXml = fs.readFileSync(paymentFile, 'utf8');
-    const fxpModLabelsEnXml = parser.parse(strModLabelsEnXml);
+    const fxpSelectedFile = parser.parse(strSelectedFile);
 
-    numPaymentsInHeader = parseInt(fxpModLabelsEnXml["Document"]["CstmrCdtTrfInitn"]["GrpHdr"]["NbOfTxs"]);
-    valuePaymentsInHeader = parseFloat(fxpModLabelsEnXml["Document"]["CstmrCdtTrfInitn"]["GrpHdr"]["CtrlSum"]);
+    let numPaymentsInHeader:number = parseInt(fxpSelectedFile["Document"]["CstmrCdtTrfInitn"]["GrpHdr"]["NbOfTxs"]);
+    let valuePaymentsInHeader:number = parseFloat(fxpSelectedFile["Document"]["CstmrCdtTrfInitn"]["GrpHdr"]["CtrlSum"]);
 
-    let pmtInfXml: any = fxpModLabelsEnXml["Document"]["CstmrCdtTrfInitn"]["PmtInf"];
+    let pmtInfXml: any = fxpSelectedFile["Document"]["CstmrCdtTrfInitn"]["PmtInf"];
 
     batchName = pmtInfXml["PmtInfId"];
     sourceAccountIBAN = pmtInfXml["DbtrAcct"]["Id"]["IBAN"];
@@ -285,7 +255,7 @@ ipcMain.on("select-file", function (event, arg) {
         errors.push(`Number of payments in header [${numPaymentsInHeader}] doesn't match number of payments [${paymentsXml.length}]`);
         console.error(`Number of payments in header [${numPaymentsInHeader}] doesn't match number of payments [${paymentsXml.length}]`);
       }
-  
+
       paymentsXml.forEach((paymentXml:any) => {
         console.log(paymentXml);
 
@@ -312,7 +282,7 @@ ipcMain.on("select-file", function (event, arg) {
         errors.push(`Number of payments in header [${numPaymentsInHeader}] doesn't match number of payments [1]`);
         console.error(`Number of payments in header [${numPaymentsInHeader}] doesn't match number of payments [1]`);
       }
-  
+
       console.log(paymentsXml);
 
       let amount:number = parseFloat(paymentsXml["Amt"]["InstdAmt"]["#text"]);
@@ -330,7 +300,7 @@ ipcMain.on("select-file", function (event, arg) {
         amount: amount
       });
       
-  
+
     }
 
     if (sumPaymentValue != valuePaymentsInHeader) {
@@ -338,22 +308,181 @@ ipcMain.on("select-file", function (event, arg) {
       console.error("Value of payments in header doesn't match value of payments");
     }
 
+    numPayments = numPaymentsInHeader;
+    valuePayments = valuePaymentsInHeader;
+      
+  } catch (err: any) {
+    errors.push(err);
+    console.error(err);
+  }
+
+
+  return errors;
+
+}  
+
+// -----
+
+const parsePaysmeGbpFile = function(strSelectedFile: string) {
+  let errors:string[] = [];
+
+  batchName = "Batch " + new Date().toISOString().split('T')[0];
+  fileCurrency = "GBP";
+
+  try {
+    const arraySelectedFileLines = strSelectedFile.split(/\r?\n/);
+
+    arraySelectedFileLines.forEach(function(selectedFileLine: string) {
+      const arrayPaymentDetails = selectedFileLine.split(/,/);
+      if (arrayPaymentDetails.length != 7) { return; }
+
+      console.log(arrayPaymentDetails);
+
+      let amount:number = parseFloat(arrayPaymentDetails[3]);
+      let ref:string = arrayPaymentDetails[4]
+      let name:string = arrayPaymentDetails[1];
+      let accountNumber:string = arrayPaymentDetails[2];
+      let sortCode:string = arrayPaymentDetails[0].replaceAll("-", "");
+
+      valuePayments += amount;
+      numPayments ++;
+
+      payments.push({
+        name: name, 
+        accountNumber: accountNumber,
+        sortCode: sortCode, 
+        ref: ref, 
+        amount: amount
+      });
+    });
+
+      
+  } catch (err: any) {
+    errors.push(err);
+    console.error(err);
+  }
+
+  return errors;
+
+}  
+
+// -----
+
+const parsePaysmeEurFile = function(strSelectedFile: string) {
+  let errors:string[] = [];
+
+  batchName = "Batch " + new Date().toISOString().split('T')[0];
+  fileCurrency = "EUR";
+
+  try {
+    const arraySelectedFileLines = strSelectedFile.split(/\r?\n/);
+
+    while (arraySelectedFileLines.length > 15) {
+      let paymentLines = arraySelectedFileLines.splice(0,25);
+      console.log(paymentLines);
+      if (paymentLines[17] != "payment" && paymentLines[2] != "EUR") {
+        errors.push("Errors with file format - line 3 of payment should be 'EUR' and line 18 should be 'payment'");
+        console.error("Errors with file format - line 3 of payment should be 'EUR' and line 18 should be 'payment'");
+      }
+
+      let amount:number = parseFloat(paymentLines[3]);
+      let ref:string = paymentLines[0]
+      let name:string = paymentLines[13];
+      let iban:string = paymentLines[12];
+
+      valuePayments += amount;
+      numPayments ++;
+
+      payments.push({
+        name: name, 
+        iban: iban,
+        ref: ref, 
+        amount: amount
+      });
+
+    }    
+      
+  } catch (err: any) {
+    errors.push(err);
+    console.error(err);
+  }
+
+  return errors;
+
+}  
+
+// -----------
+
+ipcMain.on("page-contents-loaded", function (event, arg) {
+  
+  const apiToken : Configuration = {
+    clientId: store.get('clientId'),
+    clientKey: store.get('clientKey'),
+    refreshToken: store.get('refreshToken')
+  };
+ 
+  if (isDev) { console.log(JSON.stringify(store.store)); }
+
+  mainWindow.webContents.send("configs", version, (store.get("betaAgreementDate") ? false : true ), apiToken);   
+});
+
+
+ipcMain.on("select-file", function (event, arg) {
+  let selectedFile:string = "";
+  let fileType: string = "";
+  let errors:string[] = [];
+
+  const filesSelected:string[] = dialog.showOpenDialogSync({ properties: ['openFile'] });
+  if (filesSelected) {
+    selectedFile = filesSelected[0];
+  }
+
+  numPayments = 0;
+  valuePayments = 0;
+  sourceAccountIBAN = "";
+  fileCurrency = "";
+  batchName = "";
+  payments = [];
+  
+
+  try {
+    const strSelectedFile = fs.readFileSync(selectedFile, 'utf8');
+    const arraySelectedFileLines = strSelectedFile.split(/\r?\n/);
+
+    if (strSelectedFile.match(/pain.001.001.03/g)) {
+      fileType = "SEPA Payment File";
+      errors = parsePacsFile(strSelectedFile);
+
+    } else if (strSelectedFile.match(/[0-9-]{6,8},[^,]*,\d{8},[0-9.]*,[^,]*,,/)) {
+      fileType = "Paysme GBP Payment File";
+      errors = parsePaysmeGbpFile(strSelectedFile);
+
+    } else if (arraySelectedFileLines[2] == "EUR" && 
+               arraySelectedFileLines[17] == "payment") {
+      fileType = "Paysme EUR Payment File";
+      errors = parsePaysmeEurFile(strSelectedFile);
+
+    }
+
+   
   } catch (err: any) {
     errors.push(err);
     console.error(err);
   }
 
   mainWindow.webContents.send("file-selected-and-parsed", { 
-    paymentFile: paymentFile, 
+    paymentFile: selectedFile, 
+    fileType: fileType,
     batchName: batchName,
     paymentFileCurrency: fileCurrency,
     paymentFileSourceIBAN: sourceAccountIBAN,
-    paymentFileReportNumPayments: numPaymentsInHeader, 
-    paymentFileReportValuePayments: valuePaymentsInHeader, 
+    paymentFileReportNumPayments: numPayments, 
+    paymentFileReportValuePayments: valuePayments, 
     paymentsPreview: payments.slice(0, 2),
     errors: errors
   });
 });
+
 
 
 
@@ -460,6 +589,8 @@ const addPaymentsToBatch = function(client: FireBusinessApiClient, batchUuid: st
       icanFrom: ican,
       payeeType: "ACCOUNT_DETAILS",
       destIban: payment.iban,
+      destAccountNumber: payment.accountNumber,
+      destNsc: payment.sortCode,
       destAccountHolderName: payment.name,
       amount: Math.trunc(parseFloat(payment.amount) * 100),
       myRef: payment.ref,
