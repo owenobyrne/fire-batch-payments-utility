@@ -104,7 +104,7 @@ window.api.receive("file-selected-and-parsed", function(result: any) {
             let paymentsPreview:any = result.paymentsPreview;
 
             $('#select-file-modal div.header').text("Payment File Preview - " + 
-                numberFormat.format(result.paymentFileReportValuePayments) + 
+                numberFormat.format(result.paymentFileReportValuePayments / 100) + 
                 " in " + result.paymentFileReportNumPayments + " payment(s)");
 
             let i:number = 0;
@@ -114,7 +114,7 @@ window.api.receive("file-selected-and-parsed", function(result: any) {
                     $(this.cells[0]).text(paymentsPreview[i]["name"]);
                     $(this.cells[1]).text((mFileCurrency == "GBP" ? paymentsPreview[i]["sortCode"] + " / " + paymentsPreview[i]["accountNumber"] : paymentsPreview[i]["iban"]));
                     $(this.cells[2]).text(paymentsPreview[i]["ref"]);
-                    $(this.cells[3]).text(numberFormat.format(paymentsPreview[i]["amount"]));
+                    $(this.cells[3]).text(numberFormat.format(paymentsPreview[i]["amount"] / 100));
                     i++;
 
                 } else {
@@ -153,7 +153,7 @@ $("#payment-file-preview-ok").on("click", function(event: any) {
         currency: mFileCurrency
     });
 
-    $("#filedetails>div:eq(1)").text(numberFormat.format(mValuePayments) + " in " + mNumPayments + " payment(s)");
+    $("#filedetails>div:eq(1)").text(numberFormat.format(mValuePayments / 100) + " in " + mNumPayments + " payment(s)");
     $("#filedetails").show();
     
 

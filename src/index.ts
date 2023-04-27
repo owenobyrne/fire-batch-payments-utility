@@ -217,8 +217,8 @@ const parsePacsFile = function(strSelectedFile: string) {
   try {
     const fxpSelectedFile = parser.parse(strSelectedFile);
 
-    let numPaymentsInHeader:number = parseInt(fxpSelectedFile["Document"]["CstmrCdtTrfInitn"]["GrpHdr"]["NbOfTxs"]);
-    let valuePaymentsInHeader:number = parseFloat(fxpSelectedFile["Document"]["CstmrCdtTrfInitn"]["GrpHdr"]["CtrlSum"]);
+    let numPaymentsInHeader:number = Math.round(parseInt(fxpSelectedFile["Document"]["CstmrCdtTrfInitn"]["GrpHdr"]["NbOfTxs"]));
+    let valuePaymentsInHeader:number = Math.round(parseFloat(fxpSelectedFile["Document"]["CstmrCdtTrfInitn"]["GrpHdr"]["CtrlSum"]) * 100);
 
     let pmtInfXml: any = fxpSelectedFile["Document"]["CstmrCdtTrfInitn"]["PmtInf"];
 
@@ -240,7 +240,7 @@ const parsePacsFile = function(strSelectedFile: string) {
       console.error(`Number of payments in header [${numPaymentsInHeader}] doesn't match number of payments in PmtInf block [${pmtInfXml["NbOfTxs"]}]`);
     }
 
-    if (parseFloat(pmtInfXml["CtrlSum"]) != valuePaymentsInHeader) {
+    if (Math.round(parseFloat(pmtInfXml["CtrlSum"]) * 100) != valuePaymentsInHeader) {
       errors.push("Value of payments in header doesn't match value of payments in PmtInf block");
       console.error("Value of payments in header doesn't match value of payments in PmtInf block");
     }
@@ -259,7 +259,7 @@ const parsePacsFile = function(strSelectedFile: string) {
       paymentsXml.forEach((paymentXml:any) => {
         console.log(paymentXml);
 
-        let amount:number = parseFloat(paymentXml["Amt"]["InstdAmt"]["#text"]);
+        let amount:number = Math.round(parseFloat(paymentXml["Amt"]["InstdAmt"]["#text"]) * 100);
         let ref:string = paymentXml["PmtId"]["EndToEndId"];
         let name:string = paymentXml["Cdtr"]["Nm"];
         let iban:string = paymentXml["CdtrAcct"]["Id"]["IBAN"];
@@ -285,7 +285,7 @@ const parsePacsFile = function(strSelectedFile: string) {
 
       console.log(paymentsXml);
 
-      let amount:number = parseFloat(paymentsXml["Amt"]["InstdAmt"]["#text"]);
+      let amount:number = Math.round(parseFloat(paymentsXml["Amt"]["InstdAmt"]["#text"]) * 100);
       let ref:string = paymentsXml["PmtId"]["EndToEndId"];
       let name:string = paymentsXml["Cdtr"]["Nm"];
       let iban:string = paymentsXml["CdtrAcct"]["Id"]["IBAN"];
@@ -304,8 +304,8 @@ const parsePacsFile = function(strSelectedFile: string) {
     }
 
     if (sumPaymentValue != valuePaymentsInHeader) {
-      errors.push("Value of payments in header doesn't match value of payments");
-      console.error("Value of payments in header doesn't match value of payments");
+      errors.push(`Value of payments in header [${valuePaymentsInHeader / 100}] doesn't match value of payments [${sumPaymentValue / 100}]`);
+      console.error(`Value of payments in header [${valuePaymentsInHeader / 100}] doesn't match value of payments [${sumPaymentValue / 100}]`);
     }
 
     numPayments = numPaymentsInHeader;
@@ -338,7 +338,7 @@ const parsePaysmeGbpFile = function(strSelectedFile: string) {
 
       console.log(arrayPaymentDetails);
 
-      let amount:number = parseFloat(arrayPaymentDetails[3]);
+      let amount:number = Math.round(parseFloat(arrayPaymentDetails[3]) * 100);
       let ref:string = arrayPaymentDetails[4]
       let name:string = arrayPaymentDetails[1];
       let accountNumber:string = arrayPaymentDetails[2];
@@ -385,7 +385,7 @@ const parsePaysmeEurFile = function(strSelectedFile: string) {
         console.error("Errors with file format - line 3 of payment should be 'EUR' and line 18 should be 'payment'");
       }
 
-      let amount:number = parseFloat(paymentLines[3]);
+      let amount:number = Math.round(parseFloat(paymentLines[3]) * 100);
       let ref:string = paymentLines[0]
       let name:string = paymentLines[13];
       let iban:string = paymentLines[12];
@@ -592,7 +592,7 @@ const addPaymentsToBatch = function(client: FireBusinessApiClient, batchUuid: st
       destAccountNumber: payment.accountNumber,
       destNsc: payment.sortCode,
       destAccountHolderName: payment.name,
-      amount: Math.trunc(parseFloat(payment.amount) * 100),
+      amount: payment.amount,
       myRef: payment.ref,
       yourRef: payment.ref
     },
