@@ -10,6 +10,7 @@ import isDev from 'electron-is-dev';
 import Bugsnag from '@bugsnag/js'
 const { XMLParser } = require('fast-xml-parser');
 import { version } from './../package.json';
+import reader from 'xlsx';
 
 const parser = new XMLParser({
   ignoreAttributes: false,
@@ -22,13 +23,22 @@ Bugsnag.start({
   appVersion: version
 })
 
+declare const MAIN_WINDOW_WEBPACK_ENTRY: any;
+declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
+let accessToken: string = "";
+let accessTokenExpiryDate: Date;
+let mainWindow : BrowserWindow;
+let _fireBusinessApiClient : FireBusinessApiClient;
+let mAccounts : Paths.GetAccountById.Responses.$200[] = [];
+let fileType: string = "";
 let numPayments:number = 0;
 let valuePayments:number = 0;
 let sourceAccountIBAN:string = "";
 let fileCurrency:string = "";
 let payments: any = [];
 let batchName: string = "";
+let errors:string[] = [];
 
 updater();
 
@@ -46,14 +56,7 @@ const store = new Store({
   }
 });
 
-declare const MAIN_WINDOW_WEBPACK_ENTRY: any;
-declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
-let accessToken: string = "";
-let accessTokenExpiryDate: Date;
-let mainWindow : BrowserWindow;
-let _fireBusinessApiClient : FireBusinessApiClient;
-let mAccounts : Paths.GetAccountById.Responses.$200[] = [];
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -257,7 +260,7 @@ const parsePacsFile = function(strSelectedFile: string) {
       }
 
       paymentsXml.forEach((paymentXml:any) => {
-        console.log(paymentXml);
+        // console.log(paymentXml);
 
         let amount:number = Math.round(parseFloat(paymentXml["Amt"]["InstdAmt"]["#text"]) * 100);
         let ref:string = paymentXml["PmtId"]["EndToEndId"];
@@ -283,7 +286,7 @@ const parsePacsFile = function(strSelectedFile: string) {
         console.error(`Number of payments in header [${numPaymentsInHeader}] doesn't match number of payments [1]`);
       }
 
-      console.log(paymentsXml);
+      // console.log(paymentsXml);
 
       let amount:number = Math.round(parseFloat(paymentsXml["Amt"]["InstdAmt"]["#text"]) * 100);
       let ref:string = paymentsXml["PmtId"]["EndToEndId"];
@@ -336,7 +339,7 @@ const parsePaysmeGbpFile = function(strSelectedFile: string) {
       const arrayPaymentDetails = selectedFileLine.split(/,/);
       if (arrayPaymentDetails.length != 7) { return; }
 
-      console.log(arrayPaymentDetails);
+      // console.log(arrayPaymentDetails);
 
       let amount:number = Math.round(parseFloat(arrayPaymentDetails[3]) * 100);
       let ref:string = arrayPaymentDetails[4]
@@ -379,7 +382,7 @@ const parsePaysmeEurFile = function(strSelectedFile: string) {
 
     while (arraySelectedFileLines.length > 15) {
       let paymentLines = arraySelectedFileLines.splice(0,25);
-      console.log(paymentLines);
+      // console.log(paymentLines);
       if (paymentLines[17] != "payment" && paymentLines[2] != "EUR") {
         errors.push("Errors with file format - line 3 of payment should be 'EUR' and line 18 should be 'payment'");
         console.error("Errors with file format - line 3 of payment should be 'EUR' and line 18 should be 'payment'");
@@ -413,6 +416,77 @@ const parsePaysmeEurFile = function(strSelectedFile: string) {
 
 // -----------
 
+const parseExcelFile = function(strSelectedFile: string) {
+  const file = reader.readFile(strSelectedFile);
+  const HEADER_ROW:number = 3;
+  let tables: Map<string, Map<string, Map<string, string>>> = new Map();
+
+  file.SheetNames.forEach((sheetTitle: any) => {
+      if (sheetTitle == "TOC" || sheetTitle == "_dropDownSheet") { return; }
+
+      console.log("Loading sheet: [" + sheetTitle + "]...");
+
+      let jsonSheetContents: string[][] = reader.utils.sheet_to_json(file.Sheets[sheetTitle], { header: 1 });
+      // console.log(jsonSheetContents);
+
+      const emeraldPayrollFileHeader = [ 'Code', null, 'Dept', null, 'Cost', null, 'Name', null, 'IBAN', null, 'BIC', null, 'Amount' ];
+
+      if (JSON.stringify(jsonSheetContents[0]) === JSON.stringify(emeraldPayrollFileHeader) ) {
+        parseEmeraldPayrollFile(jsonSheetContents);
+
+      } else {
+        console.log("Cannot determine file");
+      }
+
+  });
+}
+
+const parseEmeraldPayrollFile = function(jsonSheetContent: string[][]) {
+
+  let errors:string[] = [];
+
+  batchName = "Payroll " + new Date().toISOString().split('T')[0];
+  fileCurrency = "EUR";
+  fileType = "Emerald Payroll File";
+
+  try {
+
+    for (var i = 1; i<jsonSheetContent.length; i++) {
+
+      if (jsonSheetContent[i].length != 13) { continue; }
+
+      // if (paymentLines[17] != "payment" && paymentLines[2] != "EUR") {
+      //   errors.push("Errors with file format - line 3 of payment should be 'EUR' and line 18 should be 'payment'");
+      //   console.error("Errors with file format - line 3 of payment should be 'EUR' and line 18 should be 'payment'");
+      // }
+
+      let amount:number = Math.round(parseFloat(jsonSheetContent[i][12]) * 100);
+      let ref:string = "Payroll"
+      let name:string = jsonSheetContent[i][6];
+      let iban:string = jsonSheetContent[i][8];
+
+      valuePayments += amount;
+      numPayments ++;
+
+      payments.push({
+        name: name, 
+        iban: iban,
+        ref: ref, 
+        amount: amount
+      });
+
+    }
+           
+  } catch (err: any) {
+    errors.push(err);
+    console.error(err);
+  }
+
+
+}
+
+// -----------
+
 ipcMain.on("page-contents-loaded", function (event, arg) {
   
   const apiToken : Configuration = {
@@ -429,8 +503,7 @@ ipcMain.on("page-contents-loaded", function (event, arg) {
 
 ipcMain.on("select-file", function (event, arg) {
   let selectedFile:string = "";
-  let fileType: string = "";
-  let errors:string[] = [];
+
 
   const filesSelected:string[] = dialog.showOpenDialogSync({ properties: ['openFile'] });
   if (filesSelected) {
@@ -443,28 +516,41 @@ ipcMain.on("select-file", function (event, arg) {
   fileCurrency = "";
   batchName = "";
   payments = [];
+  fileType = "";
+  errors = [];
   
 
   try {
-    const strSelectedFile = fs.readFileSync(selectedFile, 'utf8');
-    const arraySelectedFileLines = strSelectedFile.split(/\r?\n/);
+    if (selectedFile.toLowerCase().endsWith(".xlsx")) {
+      parseExcelFile(selectedFile);
 
-    if (strSelectedFile.match(/pain.001.001.03/g)) {
-      fileType = "SEPA Payment File";
-      errors = parsePacsFile(strSelectedFile);
+    } else {
+      
+      const strSelectedFile = fs.readFileSync(selectedFile, 'utf8');
+      const arraySelectedFileLines = strSelectedFile.split(/\r?\n/);
 
-    } else if (strSelectedFile.match(/[0-9-]{6,8},[^,]*,\d{8},[0-9.]*,[^,]*,,/)) {
-      fileType = "Paysme GBP Payment File";
-      errors = parsePaysmeGbpFile(strSelectedFile);
+      if (strSelectedFile.match(/pain.001.001.03/g)) {
+        fileType = "SEPA Payment File";
+        parsePacsFile(strSelectedFile);
 
-    } else if (arraySelectedFileLines[2] == "EUR" && 
-               arraySelectedFileLines[17] == "payment") {
-      fileType = "Paysme EUR Payment File";
-      errors = parsePaysmeEurFile(strSelectedFile);
+      } else if (strSelectedFile.match(/[0-9-]{6,8},[^,]*,\d{8},[0-9.]*,[^,]*,,/)) {
+        fileType = "Paysme GBP Payment File";
+        parsePaysmeGbpFile(strSelectedFile);
+
+      } else if (arraySelectedFileLines[2] == "EUR" && 
+                arraySelectedFileLines[17] == "payment") {
+        fileType = "Paysme EUR Payment File";
+        parsePaysmeEurFile(strSelectedFile);
+
+      }
 
     }
-
    
+    if (fileType == "") {
+      errors.push("Could not determine payment file type.");
+      console.error("Could not determine payment file type.");
+    }
+
   } catch (err: any) {
     errors.push(err);
     console.error(err);

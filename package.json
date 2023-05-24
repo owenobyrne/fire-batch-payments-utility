@@ -1,7 +1,7 @@
 {
   "name": "fire-batch-payments-utility",
   "productName": "Fire Batch Payments Utility",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Utility Application to process files of payments with Fire",
   "main": ".webpack/main",
   "scripts": {
@@ -60,6 +60,7 @@
     "gulp": "^4.0.2",
     "openapi-client-axios": "6.0.0",
     "sha256": "^0.2.0",
-    "update-electron-app": "^2.0.1"
+    "update-electron-app": "^2.0.1",
+    "xlsx": "^0.18.5"
   }
 }
