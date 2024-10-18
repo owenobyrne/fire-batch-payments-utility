@@ -421,24 +421,130 @@ const parseExcelFile = function(strSelectedFile: string) {
   const HEADER_ROW:number = 3;
   let tables: Map<string, Map<string, Map<string, string>>> = new Map();
 
-  file.SheetNames.forEach((sheetTitle: any) => {
-      if (sheetTitle == "TOC" || sheetTitle == "_dropDownSheet") { return; }
+  if (file.SheetNames.length != 1) {
+    errors.push("There is more than one sheet in the Excel - please remove all except the sheet with the payment information");
+    console.log("There is more than one sheet in the Excel - please remove all except the sheet with the payment information");
+    return;
+  }
 
-      console.log("Loading sheet: [" + sheetTitle + "]...");
+  let sheetTitle: string = file.SheetNames[0];
+  
+  console.log("Loading sheet: [" + sheetTitle + "]...");
 
-      let jsonSheetContents: string[][] = reader.utils.sheet_to_json(file.Sheets[sheetTitle], { header: 1 });
-      // console.log(jsonSheetContents);
+  let jsonSheetContents: string[][] = reader.utils.sheet_to_json(file.Sheets[sheetTitle], { header: 1 });
+  // console.log(jsonSheetContents);
 
-      const emeraldPayrollFileHeader = [ 'Code', null, 'Dept', null, 'Cost', null, 'Name', null, 'IBAN', null, 'BIC', null, 'Amount' ];
+  console.log(JSON.stringify(jsonSheetContents[0]));
+  const emeraldPayrollFileHeader = [ 'Code', null, 'Dept', null, 'Cost', null, 'Name', null, 'IBAN', null, 'BIC', null, 'Amount' ];
+  const oooschFileHeader = [ 'Payee Payment Ref',	'Our Payment Ref', 'Payee Name', 'Amount', 'Currency', 'IBAN (for EUR)', 'Sort Code (for GBP)', 'Account Number (for GBP)' ];
 
-      if (JSON.stringify(jsonSheetContents[0]) === JSON.stringify(emeraldPayrollFileHeader) ) {
-        parseEmeraldPayrollFile(jsonSheetContents);
+  console.log(JSON.stringify(oooschFileHeader));
 
-      } else {
-        console.log("Cannot determine file");
+  if (JSON.stringify(jsonSheetContents[0]) === JSON.stringify(emeraldPayrollFileHeader) ) {
+    parseEmeraldPayrollFile(jsonSheetContents);
+
+  } else if (JSON.stringify(jsonSheetContents[0]) === JSON.stringify(oooschFileHeader) ) {
+    parseOooschFile(jsonSheetContents);
+
+  } else {
+    console.log("Cannot determine file");
+    
+  }
+
+}
+
+const parseOooschFile = function(jsonSheetContent: string[][]) {
+  batchName = "Payment Run " + new Date().toISOString().split('T')[0];
+  fileCurrency = "";
+  fileType = "Ooosch Payment File";
+
+  try {
+
+    for (var i = 1; i<jsonSheetContent.length; i++) {
+      console.log(JSON.stringify(jsonSheetContent[i]));
+
+      jsonSheetContent[i][5] = (jsonSheetContent[i][5] ? (typeof jsonSheetContent[i][5] === 'string' ? jsonSheetContent[i][5].trim() : jsonSheetContent[i][5] ) : "");
+      jsonSheetContent[i][6] = (jsonSheetContent[i][6] ? (typeof jsonSheetContent[i][6] === 'string' ? jsonSheetContent[i][6].trim() : jsonSheetContent[i][6] ) : "");
+      jsonSheetContent[i][7] = (jsonSheetContent[i][7] ? (typeof jsonSheetContent[i][7] === 'string' ? jsonSheetContent[i][7].trim() : jsonSheetContent[i][7] ) :  "");
+      
+      if (fileCurrency == "") {
+        fileCurrency = jsonSheetContent[i][4];
       }
 
-  });
+      if (fileCurrency != jsonSheetContent[i][4]) {
+        errors.push("Only include one currency per file - first payment is " + fileCurrency + " and the payment at line " + i + " is " + jsonSheetContent[i][4]);
+        console.error("Only include one currency per file - first payment is " + fileCurrency + " and the payment at line " + i + " is " + jsonSheetContent[i][4]);
+        continue;
+      }
+
+      if (jsonSheetContent[i].length > 8) { 
+        errors.push("Invalid number of fields on line " + i);
+        console.error("Invalid number of fields on line " + i);
+        continue; 
+      }
+
+      if (jsonSheetContent[i][4] == "EUR" && jsonSheetContent[i][5] == "") { 
+        errors.push("You must include an IBAN for a Euro payment at line " + i);
+        console.error("You must include an IBAN for a Euro payment at line " + i);
+        continue; 
+      }
+
+      if (jsonSheetContent[i][4] == "EUR" && (jsonSheetContent[i][6] != "" || jsonSheetContent[i][7] != "")) { 
+        errors.push("Don't include a Sort Code and Account Number for a Euro payment at line " + i);
+        console.error("Don't include a Sort Code and Account Number for a Euro payment at line " + i);
+        continue; 
+      }
+
+      if (jsonSheetContent[i][4] == "GBP" && (jsonSheetContent[i][6] == "" || jsonSheetContent[i][7] == "")) { 
+        errors.push("You must include the Sort Code and Account Number for a Sterling payment at line " + i);
+        console.error("You must include the Sort Code and Account Number for a Sterling payment at line " + i);
+        continue; 
+      }
+
+      if (jsonSheetContent[i][4] == "GBP" && jsonSheetContent[i][5] != "") { 
+        errors.push("Don't include an IBAN for a Sterling payment at line " + i);
+        console.error("Don't include an IBAN for a Sterling payment at line " + i);
+        continue; 
+      }
+
+      // if (paymentLines[17] != "payment" && paymentLines[2] != "EUR") {
+      //   errors.push("Errors with file format - line 3 of payment should be 'EUR' and line 18 should be 'payment'");
+      //   console.error("Errors with file format - line 3 of payment should be 'EUR' and line 18 should be 'payment'");
+      // }
+
+      let payeeRef:string = jsonSheetContent[i][0]
+      let myRef:string = jsonSheetContent[i][1]
+      let name:string = jsonSheetContent[i][2];
+      let amount:number = Math.round(parseFloat(jsonSheetContent[i][3]) * 100);
+      let currency:string = jsonSheetContent[i][4];
+      let iban:string = jsonSheetContent[i][5];
+      let sortCode:string = jsonSheetContent[i][6];
+      let accountNumber:string = jsonSheetContent[i][7];
+
+      valuePayments += amount;
+      numPayments ++;
+
+      payments.push({
+        name: name, 
+        iban: iban,
+        accountNumber: accountNumber,
+        sortCode: sortCode, 
+        ref: payeeRef, 
+        myRef: myRef,
+        amount: amount,
+        currency: currency
+      });
+
+    }
+           
+  } catch (err: any) {
+    errors.push(err);
+    console.error(err);
+  }
+
+  return errors;
+  // Payee Payment Ref	Our Payment Ref	Payee Name	Amount	Currency	 IBAN (for EUR)	Sort Code (for GBP)	Account Number (for GBP)
+
 }
 
 const parseEmeraldPayrollFile = function(jsonSheetContent: string[][]) {
@@ -482,6 +588,7 @@ const parseEmeraldPayrollFile = function(jsonSheetContent: string[][]) {
     console.error(err);
   }
 
+  return errors;
 
 }
 
@@ -668,20 +775,39 @@ ipcMain.on("run-batch", function (event, arg) {
 const addPaymentsToBatch = function(client: FireBusinessApiClient, batchUuid: string, ican: number, batchErrors: string[], callback: Function) {
   console.log(payments);
   let payment: any = payments.shift();
+  let paymentDetails: any = {};
 
-  client.addBankTransferBatchPayment(
-    { batchUuid: batchUuid }, 
-    {
+  if (fileCurrency == "EUR" ) {
+    paymentDetails = {
       icanFrom: ican,
       payeeType: "ACCOUNT_DETAILS",
       destIban: payment.iban,
+      destAccountHolderName: payment.name,
+      amount: payment.amount,
+      myRef: (payment.myRef ? payment.myRef : payment.ref),
+      yourRef: payment.ref
+    };
+
+  } else if (fileCurrency == "GBP") {
+    paymentDetails = {
+      icanFrom: ican,
+      payeeType: "ACCOUNT_DETAILS",
       destAccountNumber: payment.accountNumber,
       destNsc: payment.sortCode,
       destAccountHolderName: payment.name,
       amount: payment.amount,
-      myRef: payment.ref,
+      myRef: (payment.myRef ? payment.myRef : payment.ref),
       yourRef: payment.ref
-    },
+    };
+
+  } else {
+    batchErrors.push("Invalid fileCurrency! " + fileCurrency);
+    console.error("Invalid fileCurrency! " + fileCurrency);
+  }
+
+  client.addBankTransferBatchPayment(
+    { batchUuid: batchUuid }, 
+    paymentDetails,
     { headers: { "Accept-encoding": "identity", "Authorization": "Bearer " + accessToken }}
   ).then((res: any) => { 
 

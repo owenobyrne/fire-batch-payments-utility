@@ -14,6 +14,11 @@ npm install json-refs --g
 json-refs resolve ./static/fire-business-api-v1.yml > ./static/fire-business-api-v1-resolved.yml
 ``` 
 
+You may need to run it from its location if the shell doesn't pick it up
+```bash
+node C:\Users\owenobyrne\AppData\Roaming\npm\node_modules\json-refs\bin\json-refs resolve ./static/fire-business-api-v1.yml > ./static/fire-business-api-v1-resolved.yml
+```
+
 Then create the type file.
 ```bash
 npm install -g openapi-client-axios-typegen
