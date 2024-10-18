@@ -22,8 +22,8 @@ const config = {
             noMsi: true,
             remoteReleases: '',
             iconUrl: "https://owenobyrne.s3-eu-west-1.amazonaws.com/fire-reports-icon.png",
-            certificateFile: path.resolve(__dirname, '../codesigning.pfx'),
-            certificatePassword: ""
+            //certificateFile: path.resolve(__dirname, '../codesigning.pfx'),
+            //certificatePassword: ""
           }
         }
       },
