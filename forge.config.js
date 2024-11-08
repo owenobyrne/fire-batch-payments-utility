@@ -98,6 +98,7 @@ function notarizeMaybe() {
   config.packagerConfig.osxNotarize = {
     appBundleId: 'com.fire.batch-payments-utility',
     appleId: process.env.APPLE_ID || "owen.obyrne@iol.ie",
+    teamId: process.env.TEAM_ID || "54A3A3X8RX",
     appleIdPassword: process.env.APPLE_ID_PASSWORD || "tgdw-ngiy-dzon-piho",
   };
 }

@@ -19,14 +19,14 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@electron-forge/cli": "^6.0.4",
-    "@electron-forge/maker-deb": "^6.0.4",
-    "@electron-forge/maker-dmg": "^6.0.4",
-    "@electron-forge/maker-rpm": "^6.0.4",
-    "@electron-forge/maker-squirrel": "^6.0.4",
-    "@electron-forge/maker-zip": "^6.0.4",
-    "@electron-forge/plugin-webpack": "^6.0.4",
-    "@electron-forge/publisher-github": "^6.0.4",
+    "@electron-forge/cli": "^7.5.0",
+    "@electron-forge/maker-deb": "^7.5.0",
+    "@electron-forge/maker-dmg": "^7.5.0",
+    "@electron-forge/maker-rpm": "^7.5.0",
+    "@electron-forge/maker-squirrel": "^7.5.0",
+    "@electron-forge/maker-zip": "^7.5.0",
+    "@electron-forge/plugin-webpack": "^7.5.0",
+    "@electron-forge/publisher-github": "^7.5.0",
     "@marshallofsound/webpack-asset-relocator-loader": "^0.5.0",
     "@types/sha256": "^0.2.0",
     "@typescript-eslint/eslint-plugin": "^4.16.1",
@@ -45,7 +45,7 @@
     "webpack-bugsnag-plugins": "^1.8.0"
   },
   "optionalDependencies": {
-    "appdmg": "0.6.4"
+    "appdmg": "0.6.6"
   },
   "dependencies": {
     "@bugsnag/js": "^7.8.0",
