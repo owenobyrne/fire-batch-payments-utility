@@ -8,21 +8,10 @@ npm install
 ```
 to download and install all the necessary libraries and utilities. 
 
-To generate the API type file from the OpenAPI def first resolve all `$refs`. There's a bug in the typegen script that results in some refs being ignored.
-```bash
-npm install json-refs --g
-json-refs resolve ./static/fire-business-api-v1.yml > ./static/fire-business-api-v1-resolved.yml
-``` 
-
-You may need to run it from its location if the shell doesn't pick it up
-```bash
-node C:\Users\owenobyrne\AppData\Roaming\npm\node_modules\json-refs\bin\json-refs resolve ./static/fire-business-api-v1.yml > ./static/fire-business-api-v1-resolved.yml
-```
-
 Then create the type file.
 ```bash
 npm install -g openapi-client-axios-typegen
-typegen ./static/fire-business-api-v1-resolved.yml > ./src/types/fire-business-api.d.ts
+npx openapicmd typegen ./static/fire-business-api-v1.yaml > ./src/types/fire-business-api.d.ts
 ```
 
 
@@ -66,9 +55,15 @@ npm start make
 # Publishing
 To publish a new version, up the package.json version and run:
 ```bash
-export GITHUB_TOKEN=xxx
+# windows cmd prompt
+set GITHUB_TOKEN=xxx
 npm run publish
+
+# mac
+GITHUB_TOKEN=xxx npm run publish
 ```
 
 This will push a new exe to Github which will notify existing installs to update.
+
+if you want to try making a MSI in the forge.config file, read this to try fix the error: https://stackoverflow.com/questions/50612355/wix-3-installer-unresolved-bind-time-variable-bind-fileversion-name-exe - there's a variable in the Setup.wxs file that's not being replaced properly.
 

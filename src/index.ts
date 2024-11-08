@@ -326,6 +326,52 @@ const parsePacsFile = function(strSelectedFile: string) {
 
 // -----
 
+const parseFireTemplateCSVFile = function(strSelectedFile: string) {
+  let errors:string[] = [];
+
+  batchName = "Batch " + new Date().toISOString().split('T')[0];
+
+  try {
+    let arraySelectedFileLines = strSelectedFile.split(/\r?\n/);
+    arraySelectedFileLines.shift(); // I don't need the header line. 
+    fileCurrency = "EUR";
+
+    arraySelectedFileLines.forEach(function(selectedFileLine: string) {
+      const arrayPaymentDetails = selectedFileLine.split(/,/);
+      if (arrayPaymentDetails.length != 6) { return; }
+
+      console.log(arrayPaymentDetails);
+
+      let amount:number = Math.round(parseFloat(arrayPaymentDetails[5]) * 100);
+      let myRef:string = arrayPaymentDetails[4]
+      let payeeRef:string = arrayPaymentDetails[3]
+      let name:string = arrayPaymentDetails[2];
+      let iban:string = arrayPaymentDetails[1];
+      
+      valuePayments += amount;
+      numPayments ++;
+
+      payments.push({
+        name: name, 
+        iban: iban,
+        ref: payeeRef, 
+        myRef: myRef,
+        amount: amount
+      });
+    });
+
+      
+  } catch (err: any) {
+    errors.push(err);
+    console.error(err);
+  }
+
+  return errors;
+
+}  
+
+// -----
+
 const parsePaysmeGbpFile = function(strSelectedFile: string) {
   let errors:string[] = [];
 
@@ -643,6 +689,10 @@ ipcMain.on("select-file", function (event, arg) {
       } else if (strSelectedFile.match(/[0-9-]{6,8},[^,]*,\d{8},[0-9.]*,[^,]*,,/)) {
         fileType = "Paysme GBP Payment File";
         parsePaysmeGbpFile(strSelectedFile);
+
+      } else if (strSelectedFile.match(/Currency,Destination IBAN,Payee Name,Payee Reference,My Reference,Payment Amount/)) {
+        fileType = "Standard Fire Payment File Template";
+        parseFireTemplateCSVFile(strSelectedFile);
 
       } else if (arraySelectedFileLines[2] == "EUR" && 
                 arraySelectedFileLines[17] == "payment") {
