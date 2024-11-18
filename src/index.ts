@@ -326,6 +326,100 @@ const parsePacsFile = function(strSelectedFile: string) {
 
 // -----
 
+const parseFireEurTemplateCSVFile = function(strSelectedFile: string) {
+  let errors:string[] = [];
+
+  batchName = "Batch " + new Date().toISOString().split('T')[0];
+
+  try {
+    let arraySelectedFileLines = strSelectedFile.split(/\r?\n/);
+    arraySelectedFileLines.shift(); // I don't need the header line. 
+    fileCurrency = "EUR";
+
+    arraySelectedFileLines.forEach(function(selectedFileLine: string) {
+      const arrayPaymentDetails = selectedFileLine.split(/,/);
+      if (arrayPaymentDetails.length != 6) { return; }
+
+      console.log(arrayPaymentDetails);
+
+      let amount:number = Math.round(parseFloat(arrayPaymentDetails[5]) * 100);
+      let myRef:string = arrayPaymentDetails[4]
+      let payeeRef:string = arrayPaymentDetails[3]
+      let name:string = arrayPaymentDetails[2];
+      let iban:string = arrayPaymentDetails[1];
+      
+      valuePayments += amount;
+      numPayments ++;
+
+      payments.push({
+        name: name, 
+        iban: iban,
+        ref: payeeRef, 
+        myRef: myRef,
+        amount: amount
+      });
+    });
+
+      
+  } catch (err: any) {
+    errors.push(err);
+    console.error(err);
+  }
+
+  return errors;
+
+}  
+
+// -----
+
+const parseFireGbpTemplateCSVFile = function(strSelectedFile: string) {
+  let errors:string[] = [];
+
+  batchName = "Batch " + new Date().toISOString().split('T')[0];
+
+  try {
+    let arraySelectedFileLines = strSelectedFile.split(/\r?\n/);
+    arraySelectedFileLines.shift(); // I don't need the header line. 
+    fileCurrency = "GBP";
+
+    arraySelectedFileLines.forEach(function(selectedFileLine: string) {
+      const arrayPaymentDetails = selectedFileLine.split(/,/);
+      if (arrayPaymentDetails.length != 7) { return; }
+
+      console.log(arrayPaymentDetails);
+
+      let amount:number = Math.round(parseFloat(arrayPaymentDetails[6]) * 100);
+      let myRef:string = arrayPaymentDetails[5]
+      let payeeRef:string = arrayPaymentDetails[4]
+      let name:string = arrayPaymentDetails[3];
+      let accountNumber:string = arrayPaymentDetails[2];
+      let sortCode:string = arrayPaymentDetails[1];
+      
+      valuePayments += amount;
+      numPayments ++;
+
+      payments.push({
+        name: name, 
+        accountNumber: accountNumber,
+        sortCode: sortCode, 
+        ref: payeeRef, 
+        myRef: myRef,
+        amount: amount
+      });
+    });
+
+      
+  } catch (err: any) {
+    errors.push(err);
+    console.error(err);
+  }
+
+  return errors;
+
+}  
+
+// -----
+
 const parsePaysmeGbpFile = function(strSelectedFile: string) {
   let errors:string[] = [];
 
@@ -644,6 +738,14 @@ ipcMain.on("select-file", function (event, arg) {
         fileType = "Paysme GBP Payment File";
         parsePaysmeGbpFile(strSelectedFile);
 
+      } else if (strSelectedFile.match(/Currency,Destination IBAN,Payee Name,Payee Reference,My Reference,Payment Amount/)) {
+        fileType = "Standard Fire Payment Euro File Template";
+        parseFireEurTemplateCSVFile(strSelectedFile);
+
+      } else if (strSelectedFile.match(/Currency,Destination Sort Code,Destination Account Number,Payee Name,Payee Reference,My Reference,Payment Amount/)) {
+        fileType = "Standard Fire Payment Sterling File Template";
+        parseFireGbpTemplateCSVFile(strSelectedFile);
+
       } else if (arraySelectedFileLines[2] == "EUR" && 
                 arraySelectedFileLines[17] == "payment") {
         fileType = "Paysme EUR Payment File";
@@ -884,37 +986,5 @@ const submitBatch = function(client: FireBusinessApiClient, batchUuid: string, c
       
 }
 
-  //     {ican: ican, dateRangeFrom: fromDate, dateRangeTo: toDate, limit: limit, offset: offset},
-  //     null, 
-  //     { headers: { "Authorization": "Bearer " + accessToken }}
-  //   ).then(res => {
-  //     const total = res.data.total;
-      
 
-  // getTransactions(arg.ican, fromDate, toDate, limit, offset, function(csv : string) {
-  //   fs.writeFileSync(path.join(app.getPath("userData"), "report.csv"), csv);
-  //   const savePath:string = dialog.showSaveDialogSync({ 
-  //     title: "Save Report As...", 
-  //     defaultPath: path.join(store.get('savePath'), "fire-report-"+arg.fromDate.replace(/-/gi, "")+"-"+arg.toDate.replace(/-/gi, "")+".csv")
-  //   });
-
-  //   if (savePath != undefined) {
-  //     // save this directory as the default going foward
-  //     store.set("savePath", path.dirname(savePath));
-
-  //     try {
-  //       fs.copyFileSync(
-  //         path.join(app.getPath("userData"), "report.csv"), 
-  //         savePath
-  //       );
-  //     } catch (err) {
-  //       console.log(err);
-  //     }
-
-  //     fs.rmSync(path.join(app.getPath("userData"), "report.csv"));
-
-  //     shell.showItemInFolder(savePath);
-  //   }
-// 
-  // });
   
