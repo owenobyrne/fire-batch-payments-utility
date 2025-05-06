@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { Client as FireBusinessApiClient, Components, Paths } from './types/fire-business-api';
 import sha256 from 'sha256';
-import { OpenAPIClientAxios } from 'openapi-client-axios';
+import { OpenAPIClientAxios, Server } from 'openapi-client-axios';
 import Store from 'electron-store';
 import updater from 'update-electron-app';
 import isDev from 'electron-is-dev';
@@ -11,6 +11,8 @@ import Bugsnag from '@bugsnag/js'
 const { XMLParser } = require('fast-xml-parser');
 import { version } from './../package.json';
 import reader from 'xlsx';
+import os from 'os';
+import { createDiffieHellmanGroup } from 'crypto';
 
 const parser = new XMLParser({
   ignoreAttributes: false,
@@ -30,7 +32,7 @@ let accessToken: string = "";
 let accessTokenExpiryDate: Date;
 let mainWindow : BrowserWindow;
 let _fireBusinessApiClient : FireBusinessApiClient;
-let mAccounts : Paths.GetAccountById.Responses.$200[] = [];
+let mAccounts : Components.Schemas.Account[] = [];
 let fileType: string = "";
 let numPayments:number = 0;
 let valuePayments:number = 0;
@@ -52,7 +54,11 @@ const store = new Store({
     clientId: '',
     clientKey: '',
     refreshToken: '',
-    betaAgreementDate: null
+    betaAgreementDate: null,
+    testClientId: '',
+    testClientKey: '',
+    testRefreshToken: '',
+    useTest: false
   }
 });
 
@@ -82,6 +88,7 @@ const createWindow = (): void => {
     }
   });
 
+  
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
@@ -93,7 +100,8 @@ const createWindow = (): void => {
   Bugsnag.notify("Loaded");
   
   // Open the DevTools.
-  if (isDev) { mainWindow.webContents.openDevTools(); }
+  if (isDev) { setTimeout(() => { mainWindow.webContents.openDevTools();}, 5000); }
+
 };
 
 
@@ -143,6 +151,19 @@ app.on('activate', () => {
 // code. You can also put them in separate files and import them here.
 
 const initialiseApiClient = function() {
+  let server = "https://api.fire.com/business";
+  if (store.get("useTest")) { 
+    server = "https://api-preprod.fire.com/business";
+  }
+
+  console.log("Fire-Batch-Upload-Utility/" + version + " (" + os.platform() + " " + os.arch() + ")");
+
+  let api = new OpenAPIClientAxios({ 
+    definition: path.join(__dirname, "static/fire-business-api-v1.yaml"), 
+    axiosConfigDefaults: { headers: { "User-Agent": "Fire-Batch-Upload-Utility/" + version + " (" + os.platform() + " " + os.arch() + ")" }},
+    withServer: { url: server }
+  });
+  
   return api.init<FireBusinessApiClient>();
 }
 
@@ -151,7 +172,6 @@ const loadAccounts = function(client: FireBusinessApiClient) {
 }
 
 
-const api = new OpenAPIClientAxios({ definition: path.join(__dirname, "static/fire-business-api-v1.yaml") });
 
 const getClient = function() {
   console.log("Getting client....");
@@ -170,7 +190,15 @@ const getClient = function() {
 
       resolve(_fireBusinessApiClient);
 
-    } else if (store.get("clientId").length == 36) {
+    } else if (store.get("useTest") && store.get("testClientId").length == 36) {
+      // if we have client API tokens, initialise a new client.
+      initialiseApiClient().then((client : FireBusinessApiClient) => { 
+        // console.log(client);
+        _fireBusinessApiClient = client;
+        resolve(_fireBusinessApiClient);
+      });
+
+    } else if (!store.get("useTest") && store.get("clientId").length == 36) {
       // if we have client API tokens, initialise a new client.
       initialiseApiClient().then((client : FireBusinessApiClient) => { 
         // console.log(client);
@@ -187,12 +215,31 @@ const getClient = function() {
 
 const getAccessToken = function(client: FireBusinessApiClient) {
   return new Promise<string>((resolve, reject) => {
+    let clientId, clientKey, refreshToken;
+    if (store.get("useTest")) {
+      clientId = store.get("testClientId");
+      clientKey = store.get("testClientKey");
+      refreshToken = store.get("testRefreshToken");
+
+    } else {
+      clientId = store.get("clientId");
+      clientKey = store.get("clientKey");
+      refreshToken = store.get("refreshToken");
+
+    }
+
     const nonce = Math.floor(new Date().getTime()/1000.0);
-    const clientSecret = sha256(nonce + store.get('clientKey'));
+    const clientSecret = sha256(nonce + clientKey);
 
     client.authenticate(
         null, 
-        {clientId: store.get('clientId'), clientSecret:  clientSecret, refreshToken: store.get('refreshToken'), nonce: nonce, grantType: "AccessToken"}, 
+        {
+          clientId: clientId, 
+          clientSecret:  clientSecret, 
+          refreshToken: refreshToken, 
+          nonce: nonce, 
+          grantType: "AccessToken"
+        }, 
         { headers: { "Accept-encoding": "identity" }}
     ).then((gatres: any) => { 
       accessToken = gatres.data.accessToken;
@@ -693,7 +740,11 @@ ipcMain.on("page-contents-loaded", function (event, arg) {
   const apiToken : Configuration = {
     clientId: store.get('clientId'),
     clientKey: store.get('clientKey'),
-    refreshToken: store.get('refreshToken')
+    refreshToken: store.get('refreshToken'),
+    testClientId: store.get('testClientId'),
+    testClientKey: store.get('testClientKey'),
+    testRefreshToken: store.get('testRefreshToken'),
+    useTestSystem: store.get("useTest")
   };
  
   if (isDev) { console.log(JSON.stringify(store.store)); }
@@ -786,9 +837,8 @@ ipcMain.on("get-accounts", function (event, arg) {
   getClient()
     .then(client => {
     loadAccounts(client).then((res: any) => {
-     
-      if ((res.data as Paths.GetAccounts.Responses.$200).accounts) {
-        mAccounts = (res.data as Paths.GetAccounts.Responses.$200).accounts;
+      if (res.data) {
+        mAccounts = res.data.accounts as Components.Schemas.Account[];
         mainWindow.webContents.send("accounts", mAccounts, null);   
 
       } 
@@ -815,9 +865,15 @@ ipcMain.on("save-configuration", function (event, arg) {
   store.set({
     clientId: configs.clientId,
     clientKey: configs.clientKey,
-    refreshToken: configs.refreshToken
+    refreshToken: configs.refreshToken,
+    testClientId: configs.testClientId,
+    testClientKey: configs.testClientKey,
+    testRefreshToken: configs.testRefreshToken,
+    useTest: configs.useTestSystem
   });
 
+  _fireBusinessApiClient = null;
+  
   getClient()
     .then(client => { 
       getAccessToken(client).then(result => {
@@ -833,7 +889,7 @@ ipcMain.on("save-configuration", function (event, arg) {
 //ipcMain.on will receive the “btnclick” info from renderprocess 
 ipcMain.on("run-batch", function (event, arg) {
 
-  let batchDetails: Paths.CreateBatchPayment.RequestBody = {
+  let batchDetails: Components.Schemas.NewBatch = {
     batchName: arg.batchName, 
     currency: fileCurrency,
     type: 'BANK_TRANSFER'

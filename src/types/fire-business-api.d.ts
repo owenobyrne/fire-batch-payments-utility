@@ -143,7 +143,7 @@ declare namespace Components {
             fopOnly?: boolean;
         }
         /**
-         * Account Configuration
+         * accountConfiguration
          */
         export interface AccountConfiguration {
             /**
@@ -154,7 +154,7 @@ declare namespace Components {
             accountName?: string;
         }
         /**
-         * Activity
+         * activity
          */
         export interface Activity {
             /**
@@ -193,7 +193,7 @@ declare namespace Components {
             dateCreated?: string;
         }
         /**
-         * Get User Address
+         * userAddress
          */
         export interface Address {
             /**
@@ -212,29 +212,24 @@ declare namespace Components {
              * Dublin
              */
             city?: string;
-            /**
-             * country
-             */
-            country?: {
-                /**
-                 * The 2-letter code for the country - e.g. `IE`, `GP`...
-                 * example:
-                 * GB
-                 */
-                code?: string;
-                /**
-                 * The name of the country
-                 * example:
-                 * United Kingdom
-                 */
-                description?: string;
-            };
+            country?: /* country */ Country;
             /**
              * This is the postcode listed for the address
              * example:
              * D01 E100
              */
             postcode?: string;
+        }
+        /**
+         * Alias
+         */
+        export interface Alias {
+            /**
+             * The alias of the mandate
+             * example:
+             * Mandate1
+             */
+            alias?: string;
         }
         /**
          * apiError
@@ -254,25 +249,43 @@ declare namespace Components {
             message?: string;
         }
         /**
-         * apiApplication
+         * apiError
          */
-        export interface Application {
+        export interface ApiErrorV2 {
             /**
-             * This is the ID number of the API application
+             * Error Code
              * example:
-             * 2404
+             * 50051
              */
-            applicationId?: number; // int64
+            code?: number; // int64
             /**
-             * This is the name given to the API application by the fire.com user
+             * The error message
              * example:
-             * Account Information Test
+             * Sorry, we are unable to proceed with your request.
              */
-            name?: string;
+            message?: string;
+        }
+        /**
+         * apiError
+         */
+        export interface ApiErrorV3 {
             /**
-             * The ICAN of one of your Fire accounts. Restrict this API Application to a certan account.
+             * Error Code
+             * example:
+             * 50051
              */
-            ican?: number; // int64
+            code?: number; // int64
+            /**
+             * The error message
+             * example:
+             * Sorry, we are unable to proceed with your request.
+             */
+            message?: string;
+        }
+        /**
+         * apiApplicationCreated
+         */
+        export interface AppCreated {
             /**
              * This is the ID of client associated with the application
              * example:
@@ -291,34 +304,57 @@ declare namespace Components {
              * 4ADFB67A-0F5B-4A9A-9D74-34437250045C
              */
             clientKey?: string;
+        }
+        /**
+         * apiApplication
+         */
+        export interface Application {
+            /**
+             * This is the ID number of the API application
+             * example:
+             * 2404
+             */
+            applicationId?: number; // int64
+            /**
+             * This is the name given to the API application by the fire.com user
+             * example:
+             * Account Information Test
+             */
+            name?: string;
+            /**
+             * This is the ID of client associated with the application
+             * example:
+             * G0919C06D23D-362A-H5D3-E76D8687D6AE
+             */
+            clientId?: string;
+            /**
+             * This is the refresh token associated with the application
+             * example:
+             * 9C332CF3-1687-4548-8E0E-55E4F0599800
+             */
+            refreshToken?: string;
             /**
              * This is whether or not the application is enabled for usage
              */
             enabled?: boolean;
             /**
-             * This is the number of approvals required for any application actions
+             * This is the number of approvals required for any application actions. Only for applications with batch payment permissions enabled.
              * example:
              * 1
              */
             numberOfApprovalsRequired?: number; // int64
             /**
-             * This is number of approvals required for any payment batches
+             * This is number of approvals required for any payment batches. Only for applications with batch payment permissions enabled.
              * example:
              * 1
              */
             numberOfPaymentApprovalsRequired?: number; // int64
             /**
-             * This is the number of approvals required for Payees
+             * This is the number of approvals required for Payees. Only for applications with batch payment permissions enabled.
              * example:
              * 1
              */
             numberOfPayeeApprovalsRequired?: number; // int64
-            /**
-             * The date that this API Application can no longer be used.
-             * example:
-             * 2019-08-22T07:48:56.460Z
-             */
-            expiry?: string; // date-time
         }
         /**
          * aspsp
@@ -635,19 +671,14 @@ declare namespace Components {
         /**
          * batchItem
          */
-        export interface BatchItem {
+        export interface BatchItemBankTransfer {
             /**
              * A UUID for this item.
              * example:
              * F2AF3F2B-4406-4199-B249-B354F2CC6019
              */
             batchItemUuid?: string;
-            /**
-             * status of the batch if internal trasnfer
-             * example:
-             * SUCCEEDED
-             */
-            status?: "SUBMITTED" | "REMOVED" | "SUCCEEDED" | "FAILED";
+            status?: "PENDING_APPROVAL" | "REJECTED" | "COMPLETE" | "OPEN" | "CANCELLED" | "PENDING_PARENT_BATCH_APPROVAL" | "READY_FOR_PROCESSING";
             /**
              * The outcome of the attempted transaction.
              */
@@ -676,35 +707,11 @@ declare namespace Components {
              */
             lastUpdated?: string; // date-time
             /**
-             * The fee charged by fire.com for the payment. In pence or cent.
-             * example:
-             * 0
-             */
-            feeAmount?: number; // int64
-            /**
-             * Any taxes/duty collected by fire.com for this payments (e.g. stamp duty etc). In pence or cent.
-             * example:
-             * 0
-             */
-            taxAmount?: number; // int64
-            /**
-             * The amount of the transfer after fees and taxes. in pence or cent.
-             * example:
-             * 10000
-             */
-            amountAfterCharges?: number; // int64
-            /**
              * The Fire account ID of the source account.
              * example:
              * 2150
              */
             icanFrom?: number; // int64
-            /**
-             * The Fire account ID for the fire.com account the funds are sent to.
-             * example:
-             * 1002
-             */
-            icanTo?: number; // int64
             /**
              * The amount of funds to send. In cent or pence
              * example:
@@ -716,13 +723,41 @@ declare namespace Components {
              * example:
              * Testing a transfer via batch
              */
-            ref?: string;
+            myRef?: string;
+            /**
+             * The reference on the transaction.
+             * example:
+             * Testing a transfer via batch
+             */
+            yourRef?: string;
             /**
              * The ID of the resulting payment in your account. Can be used to retrieve the transaction using the https://api.fire.com/business/v1/accounts/{accountId}/transactions/{refId} endpoint.
              * example:
              * 123782
              */
             refId?: number; // int64
+            /**
+             * The type of payee information
+             */
+            payeeType?: "ACCOUNT_DETAILS" | "PAYEE_ID";
+            /**
+             * The ID for the named payee
+             * example:
+             * 1234567
+             */
+            payeeId?: number; // int64
+            /**
+             * The IBAN for the payee's account
+             * example:
+             * IE63CPAYXXXXXXX792562
+             */
+            destIban?: string;
+            /**
+             * The payee's name
+             * example:
+             * John Doe
+             */
+            destAccountHolderName?: string;
         }
         /**
          * batchItemBankTransferMode1
@@ -855,6 +890,289 @@ declare namespace Components {
             jobNumber?: string;
         }
         /**
+         * batchItem-internaltransfer
+         * The items contained in an internal transfer batch
+         */
+        export interface BatchItemInternalTransfer {
+            /**
+             * A UUID for this item.
+             * example:
+             * F2AF3F2B-4406-4199-B249-B354F2CC6019
+             */
+            batchItemUuid?: string;
+            /**
+             * status of the batch if internal trasnfer
+             * example:
+             * SUCCEEDED
+             */
+            status?: "SUBMITTED" | "REMOVED" | "SUCCEEDED" | "FAILED";
+            /**
+             * The outcome of the attempted transaction.
+             */
+            result?: {
+                /**
+                 * example:
+                 * 500001
+                 */
+                code?: number; // int64
+                /**
+                 * example:
+                 * SUCCESS
+                 */
+                message?: string;
+            };
+            /**
+             * The datestamp the batch was created - ISO format - e.g. 2018-04-04T00:53:21.910Z
+             * example:
+             * 2021-04-04T10:48:53.540Z
+             */
+            dateCreated?: string; // date-time
+            /**
+             * The datestamp of the last action on this batch - ISO format - e.g. 2018-04-04T10:48:53.540Z
+             * example:
+             * 2021-04-04T10:48:53.540Z
+             */
+            lastUpdated?: string; // date-time
+            /**
+             * The fee charged by fire.com for the payment. In pence or cent.
+             * example:
+             * 0
+             */
+            feeAmount?: number; // int64
+            /**
+             * Any taxes/duty collected by fire.com for this payments (e.g. stamp duty etc). In pence or cent.
+             * example:
+             * 0
+             */
+            taxAmount?: number; // int64
+            /**
+             * The amount of the transfer after fees and taxes. in pence or cent.
+             * example:
+             * 10000
+             */
+            amountAfterCharges?: number; // int64
+            /**
+             * The Fire account ID of the source account.
+             * example:
+             * 2150
+             */
+            icanFrom?: number; // int64
+            /**
+             * The Fire account ID for the fire.com account the funds are sent to.
+             * example:
+             * 1002
+             */
+            icanTo?: number; // int64
+            /**
+             * The amount of funds to send. In cent or pence
+             * example:
+             * 10000
+             */
+            amount?: number; // int64
+            /**
+             * The reference on the transaction.
+             * example:
+             * Testing a transfer via batch
+             */
+            ref?: string;
+            /**
+             * The ID of the resulting payment in your account. Can be used to retrieve the transaction using the https://api.fire.com/business/v1/accounts/{accountId}/transactions/{refId} endpoint.
+             * example:
+             * 123782
+             */
+            refId?: number; // int64
+        }
+        /**
+         * batchItem-internaltransfer
+         * The items contained in an internal transfer batch
+         */
+        export interface BatchItemInternationalTransfer {
+            /**
+             * A UUID for this item.
+             * example:
+             * F2AF3F2B-4406-4199-B249-B354F2CC6019
+             */
+            batchItemUuid?: string;
+            /**
+             * status of the batch if internal trasnfer
+             * example:
+             * SUCCEEDED
+             */
+            status?: "SUBMITTED" | "REMOVED" | "SUCCEEDED" | "FAILED";
+            /**
+             * The outcome of the attempted transaction.
+             */
+            result?: {
+                /**
+                 * example:
+                 * 500001
+                 */
+                code?: number; // int64
+                /**
+                 * example:
+                 * SUCCESS
+                 */
+                message?: string;
+            };
+            /**
+             * The datestamp the batch was created - ISO format - e.g. 2018-04-04T00:53:21.910Z
+             * example:
+             * 2021-04-04T10:48:53.540Z
+             */
+            dateCreated?: string; // date-time
+            /**
+             * The datestamp of the last action on this batch - ISO format - e.g. 2018-04-04T10:48:53.540Z
+             * example:
+             * 2021-04-04T10:48:53.540Z
+             */
+            lastUpdated?: string; // date-time
+            /**
+             * The fee charged by fire.com for the payment. In pence or cent.
+             * example:
+             * 0
+             */
+            feeAmount?: number; // int64
+            /**
+             * Any taxes/duty collected by fire.com for this payments (e.g. stamp duty etc). In pence or cent.
+             * example:
+             * 0
+             */
+            taxAmount?: number; // int64
+            /**
+             * The amount of the transfer after fees and taxes. in pence or cent.
+             * example:
+             * 10000
+             */
+            amountAfterCharges?: number; // int64
+            /**
+             * The Fire account ID of the source account.
+             * example:
+             * 2150
+             */
+            icanFrom?: number; // int64
+            /**
+             * The ID of the payee
+             * example:
+             * 1234
+             */
+            payeeId?: number; // int64
+            /**
+             * The amount of funds to send. In cent or pence
+             * example:
+             * 10000
+             */
+            amount?: number; // int64
+            /**
+             * Reason for sending
+             * example:
+             * Other
+             */
+            paymentReason?: string;
+            /**
+             * The reference on the transaction.
+             * example:
+             * Testing a transfer via batch
+             */
+            myRef?: string;
+            /**
+             * Reference on payee account
+             * example:
+             * Testing payee ref
+             */
+            yourRef?: string;
+        }
+        /**
+         * batchItem
+         */
+        export interface BatchRequest {
+            /**
+             * A UUID for this item.
+             * example:
+             * F2AF3F2B-4406-4199-B249-B354F2CC6019
+             */
+            batchItemUuid?: string;
+            /**
+             * The type of batch
+             */
+            type?: "INTERNAL_TRANSFER" | "BANK_TRANSFER" | "NEW_PAYEE" | "DEPRECATED_LOGIN" | "DEPRECATED_MANUALLY_ADDED_NEW_PAYEE" | "DEPRECATED_NEW_USER" | "INTERNATIONAL_TRANSFER";
+            /**
+             * Status of the batch
+             */
+            status?: "PENDING_APPROVAL" | "REJECTED" | "COMPLETE" | "OPEN" | "CANCELLED" | "PENDING_PARENT_BATCH_APPROVAL" | "READY_FOR_PROCESSING";
+            /**
+             * Source name
+             * example:
+             * Account Information Test
+             */
+            sourceName?: string;
+            /**
+             * The name assigned to the batch
+             * example:
+             * Test Batch
+             */
+            batchName?: string;
+            /**
+             * A name assigned to identiy the batch job executed
+             * example:
+             * 1234optional
+             */
+            jobNumber?: string;
+            /**
+             * The currency the batch job is executed in
+             * example:
+             * EUR
+             */
+            currency?: string;
+            /**
+             * Number of payments in the batch
+             * example:
+             * 1
+             */
+            numberOfItemsSubmitted?: number; // int64
+            /**
+             * Total value of the payments in the batch
+             * example:
+             * 100
+             */
+            valueOfItemsSubmitted?: number; // int64
+            /**
+             * Number of payments in the batch that failed
+             * example:
+             * 1
+             */
+            numberOfItemsFailed?: number; // int64
+            /**
+             * Total value of failed payments in the batch
+             * example:
+             * 100
+             */
+            valueOfItemsFailed?: number; // int64
+            /**
+             * Number of payments in the batch that succeeded
+             * example:
+             * 0
+             */
+            numberOfItemsSucceeded?: number; // int64
+            /**
+             * Total value of successful payments in the batch
+             * example:
+             * 0
+             */
+            valueOfItemsSucceeded?: number; // int64
+            /**
+             * The datestamp of the last action on this batch - ISO format - e.g. 2018-04-04T10:48:53.540Z
+             * example:
+             * 2021-04-04T10:48:53.540Z
+             */
+            lastUpdated?: string; // date-time
+            /**
+             * The datestamp the batch was created - ISO format - e.g. 2018-04-04T00:53:21.910Z
+             * example:
+             * 2021-04-04T10:48:53.540Z
+             */
+            dateCreated?: string; // date-time
+        }
+        /**
          * businessAddress
          */
         export interface BusinessAddress {
@@ -879,7 +1197,7 @@ declare namespace Components {
             country?: /* country */ Country;
         }
         /**
-         * businessServices
+         * businessService
          */
         export interface BusinessService {
             /**
@@ -1141,6 +1459,9 @@ declare namespace Components {
              */
             dateCreated?: string; // date-time
         }
+        /**
+         * directDebitByMandateUUID
+         */
         export interface DirectDebitByMandateUUID {
             /**
              * The UUID for the mandate
@@ -1381,6 +1702,10 @@ declare namespace Components {
             mandateUuid?: string;
         }
         /**
+         * events
+         */
+        export type Events = ("LODGEMENT_RECEIVED" | "PAYMENT_RECEIVED" | "PAYMENT_REQUEST_PAYMENT_RECEIVED" | "ACCOUNT_CREATED" | "CARD_CREATED" | "CARD_AUTHORISATION" | "CARD_SETTLEMENT" | "PAYMENT_REQUEST_PAYMENT_AUTHORISED" | "PIS_LODGEMENT_RECEIVE")[];
+        /**
          * feeRule
          * The rules around the fee being applied
          */
@@ -1436,21 +1761,41 @@ declare namespace Components {
             fixedPercentage4d?: number; // int64
         }
         /**
-         * Get FX Rates
+         * getFXRates
          */
         export interface FxRate {
             /**
-             * The currency the funds are currently in
+             * The FX transfer provider
              * example:
-             * EUR
+             * TCC
              */
-            fromCurrency?: string;
+            provider?: string;
             /**
              * The currency the funds will be exchanged to
              * example:
              * GBP
              */
-            toCurrency?: string;
+            buyCurrency?: string;
+            /**
+             * The currency the funds are currently in
+             * example:
+             * EUR
+             */
+            sellCurrency?: string;
+            /**
+             * The fixed side of the FX transfer
+             * example:
+             * SELL
+             */
+            fixedSide?: string;
+            /**
+             * Amount to buy (in buy currency)
+             */
+            buyAmount?: number; // int64
+            /**
+             * Amount to sell (in sell currency)
+             */
+            sellAmount?: number; // int64
             /**
              * example:
              * 8381
@@ -1576,7 +1921,7 @@ declare namespace Components {
             paymentReason?: string;
         }
         /**
-         * items
+         * item
          */
         export interface Item {
             /**
@@ -1648,12 +1993,12 @@ declare namespace Components {
          * Details of the level used for the limit
          */
         /**
-         * Service
+         * service
          * Utilisation Level Type
          */
         Service | /* serviceGroup */ ServiceGroup;
         /**
-         * limitInfo
+         * limit
          */
         export interface Limit {
             /**
@@ -1896,7 +2241,7 @@ declare namespace Components {
          */
         export interface NewApiApplication {
             /**
-             * The ICAN of one of your Fire accounts. Restrict this API Application to a certan account.
+             * The ICAN of one of your Fire accounts. Restrict this API Application to a certain account.
              */
             ican?: number; // int64
             /**
@@ -2055,7 +2400,7 @@ declare namespace Components {
             status?: "CREATED_ACTIVE" | "CREATED_INACTIVE";
         }
         /**
-         * New Payee Batch
+         * newPayeeBatch
          */
         export interface NewPayeesBatch {
             /**
@@ -2067,7 +2412,7 @@ declare namespace Components {
             /**
              * items
              */
-            items?: /* items */ Item[];
+            items?: /* item */ Item[];
         }
         /**
          * newPaymentRequest
@@ -2118,7 +2463,7 @@ declare namespace Components {
              */
             expiry?: string; // date-time
             /**
-             * The merchant return URL where the customer will be re-directed to with the result of the transaction.
+             * The merchant return URL where the customer will be re-directed to with the result of the transaction. The returnUrl variable should handle two scenarios. If the user cancels the payment before reaching their banking app, URLs are identified with a /return?status=cancelled. If the user proceeds to their banking app, URLs are identified with /paymentUUID={paymentUUID}
              * example:
              * https://example.com/callback
              */
@@ -2203,7 +2548,7 @@ declare namespace Components {
             /**
              * This is a reference you use to uniquely identify each of your customers.
              * example:
-             * 08303863544
+             * CustNum-303863544
              */
             merchantCustomerIdentification?: string;
             /**
@@ -2300,6 +2645,10 @@ declare namespace Components {
              */
             accountNumber?: string;
             /**
+             * BIC and IBAN for domestic payees. Account numbers for international payees
+             */
+            combinedAccountNumbers?: string;
+            /**
              * The creation source of the payee.
              * example:
              * CUSTOMER
@@ -2317,179 +2666,108 @@ declare namespace Components {
          */
         export interface PaymentRequest {
             /**
-             * The code that was returned when you created the payment request.
+             * The code of the payment request called
              * example:
              * 1234abcd
              */
-            paymentRequestCode?: string;
+            code?: string;
             /**
-             * A unique id for the transaction.
+             * The type of Payment Request
              * example:
-             * 4ADFB67A-0F5B-4A9A-9D74-34437250045C
+             * OTHER
              */
-            paymentUuid?: string;
+            type?: string;
             /**
-             * The type of payment request payment
-             */
-            transactionType?: "REFUND_REQUEST" | "PAYMENT";
-            /**
-             * The status of the transaction
-             */
-            status?: "ACTIVE" | "PAID" | "REMOVED" | "EXPIRED";
-            currency?: "GBP" | "EUR";
-            /**
-             * The type of Fire Open Payment that was created
-             */
-            type?: "OTHER";
-            /**
-             * The ican of the account to collect the funds into. Must be one of your fire.com Accounts.
+             * The direction of the payment request
              * example:
-             * 42
+             * SENT
              */
-            icanTo?: number; // int64
+            direction?: string;
             /**
-             * The requested amount to pay. Note the last two digits represent pennies/cents, (e.g., £1.00 = 100).
+             * The status of the payment request
+             * example:
+             * ACTIVE
+             */
+            status?: string;
+            /**
+             * The currency the payment request was sent in
+             * example:
+             * GBP
+             */
+            currency?: string;
+            /**
+             * The account associated with the payment request
+             * example:
+             * Sterling Account
+             */
+            accountName?: string;
+            /**
+             * The amount of funds associated with the payment request
              * example:
              * 1000
              */
             amount?: number; // int64
             /**
-             * An internal description of the request.
+             * The description added to the payment request
              * example:
-             * Fees
-             */
-            myRef?: string;
-            /**
-             * A public facing description of the request. This will be shown to the user when they tap or scan the request. Fire will truncate to 18 characters to ensure it is accepted by all banks. It is safest to use only numbers, letters, spaces and a fullstop (.) Special characters are not accepted by most banks and errors will only occur after the customer has approved the payment.
-             * example:
-             * Gym Fees Oct 2020
+             * test
              */
             description?: string;
             /**
-             * The max number of people who can pay this request. Must be set to 1 for the ECOMMERCE_GOODS and ECOMMERCE_SERVICES types.
+             * The reference added to the payment request
              * example:
-             * 1
+             * test
              */
-            maxNumberPayments?: number;
+            myRef?: string;
             /**
-             * This is the expiry of the payment request. After this time, the payment cannot be paid.
+             * The date that the payment request was created
              * example:
-             * 2024-10-22T07:48:56.460Z
+             * 2019-08-22T07:48:56.460Z
              */
-            expiry?: string; // date-time
+            dateCreated?: string; // date-time
             /**
-             * The merchant return URL where the customer will be re-directed to with the result of the transaction.
+             * The ican associated with the payment request
              * example:
-             * https://example.com/callback
+             * 1234
              */
-            returnUrl?: string;
+            icanTo?: number; // int64
+            orderDetails?: /* orderDetails */ OrderDetails;
             /**
-             * A URL to be called in the background with the details of the payment after the payment is complete
-             * example:
-             * https://example.com/webhook
+             * The count of the times the Payment Details page was viewed
              */
-            webhookUrl?: string;
+            countTimesViewedPaymentDetailsPage?: number; // int64
             /**
-             * orderDetails
+             * The count of the times the Select Bank page was viewed
              */
-            orderDetails?: {
-                /**
-                 * Your Merchant Number (if applicable).
-                 * example:
-                 * 1234567
-                 */
-                merchantNumber?: string;
-                /**
-                 * Use this field to store the order id for the transaction. The Order Id cannot be set unless the `maxNumberPayments` is 1.
-                 * example:
-                 * 6c28a47d-4502-4111
-                 */
-                orderId?: string;
-                /**
-                 * Use this field to store a product id for the transaction (for example).
-                 * example:
-                 * ZFDAA-1221
-                 */
-                productId?: string;
-                /**
-                 * Use this field to store a customer number for the transaction (for example).
-                 * example:
-                 * 123645
-                 */
-                customerNumber?: string;
-                /**
-                 * Use this field to store any other reference for the transaction (for example, a phone number).
-                 * example:
-                 * John Doe
-                 */
-                variableReference?: string;
-                /**
-                 * This is your own comment for the transaction.
-                 * example:
-                 * Additional comments about the transaction
-                 */
-                comment1?: string;
-                /**
-                 * This is your own comment for the transaction.
-                 * example:
-                 * Additional comments about the transaction
-                 */
-                comment2?: string;
-                /**
-                 * This is a reference you use to uniquely identify each of your customers.
-                 * example:
-                 * 08303863544
-                 */
-                merchantCustomerIdentification?: string;
-                /**
-                 * The first line of the delivery address.
-                 * example:
-                 * 12 The Street
-                 */
-                deliveryAddressLine1?: string;
-                /**
-                 * The second line of the delivery address.
-                 * example:
-                 * The Way
-                 */
-                deliveryAddressLine2?: string;
-                /**
-                 * Delivery address city
-                 * example:
-                 * London
-                 */
-                deliveryCity?: string;
-                /**
-                 * Delivery address post code
-                 * example:
-                 * EC15155
-                 */
-                deliveryPostCode?: string;
-                /**
-                 * 2-digit code for the country
-                 * example:
-                 * GB
-                 */
-                deliveryCountry?: string;
-            };
+            countTimesViewedSelectBankPage?: number; // int64
             /**
-             * For the hosted option, the payer will be asked to fill in these fields but they will not be mandatory. You can choose to collect any of the payer's `ADDRESS`, `REFERENCE` and/or `COMMENT1`. If you choose to collect these fields from the payer, you cannot set 'delivery’, 'variableReference’ or 'comment1’ fields respectively.
-             * example:
-             * ADDRESS|REFERENCE|COMMENT1
+             * The count of the times the Consent page was viewed
              */
-            collectFields?: string;
+            countTimesViewedConsentPage?: number; // int64
             /**
-             * For the hosted option, these fields will be madatory for the payer to fill in on the hosted payment page. You can choose to collect any the payer's `ADDRESS`, `REFERENCE` and/or `COMMENT1`. If you choose to collect these fields from the payer, you cannot set 'delivery’, 'variableReference’ or 'comment1’ fields respectively.
-             * example:
-             * ADDRESS|REFERENCE|COMMENT1
+             * The count of the times the Response page was viewed
              */
-            mandatoryFields?: string;
+            countTimesViewedResponsePage?: number; // int64
             /**
-             * These fields will be dispalyed to the payer when using the hosted option. You can choose to display any of `ORDER_ID`, `PRODUCT_ID`, `CUSTOMER_ID`, `CUSTOMER_NUMBER` and `COMMENT2` to the payer.
-             * example:
-             * ORDER_ID|PRODUCT_ID|CUSTOMER_ID|CUSTOMER_NUMBER|COMMENT2
+             * The count of the times the payment request was consented to
              */
-            additionalFields?: string;
+            countTimesConsented?: number; // int64
+            /**
+             * The count of the times the payment request was authorised
+             */
+            countTimesAuthorised?: number; // int64
+            /**
+             * The amount the payment request was authorised for
+             */
+            totalAmountAuthorised?: number; // int64
+            /**
+             * The count of the times the payment request was paid
+             */
+            countTimesPaid?: number; // int64
+            /**
+             * The total amount paid via the payment request
+             */
+            totalAmountPaid?: number; // int64
         }
         /**
          * paymentRequestPayment
@@ -2530,7 +2808,7 @@ declare namespace Components {
             /**
              * The status of the transaction
              */
-            status?: "AWAITING_AUTHORISATION" | "AUTHORISED" | "AWAITING_MULTI_AUTHORISATION" | "NOT_AUTHORISED" | "PAID" | "REJECTED" | "ACCEPTED" | "RECEIVED";
+            status?: "AWAITING_AUTHORISATION" | "AUTHORISED" | "AWAITING_MULTI_AUTHORISATION" | "NOT_AUTHORISED" | "SETTLED" | "REJECTED" | "ACCEPTED" | "RECEIVED";
             /**
              * The reason for the refund.
              * example:
@@ -2631,7 +2909,7 @@ declare namespace Components {
             allowFopReceipt?: boolean;
         }
         /**
-         * PaymentRequestReport
+         * paymentRequestReport
          */
         export interface PaymentRequestReport {
             /**
@@ -2738,7 +3016,7 @@ declare namespace Components {
             type?: "OTHER" | "DIRECT" | "SHAREABLE" | "PARTY_TO_PARTY" | "BILL_PAYMENT" | "ECOMMERCE_GOODS" | "ECOMMERCE_SERVICES";
         }
         /**
-         * PaymentRequestsSent
+         * paymentRequestsSent
          */
         export interface PaymentRequestsSent {
             /**
@@ -2756,7 +3034,7 @@ declare namespace Components {
             paymentRequests?: /* paymentRequestSummary */ PaymentRequestSummary[];
         }
         /**
-         * API App permission
+         * apiAppPermission
          */
         export interface Permission {
             /**
@@ -2864,7 +3142,7 @@ declare namespace Components {
             cardMerchant?: {
                 /**
                  * example:
-                 * 06011329
+                 * 6011329
                  */
                 acquirerIdDe32?: string;
                 additionalAmtDe54?: string;
@@ -2891,7 +3169,7 @@ declare namespace Components {
                 mccCode?: string;
                 /**
                  * example:
-                 * 013152429
+                 * 13152429
                  */
                 merchIdDe42?: string;
                 /**
@@ -2901,7 +3179,7 @@ declare namespace Components {
                 merchNameDe43?: string;
                 /**
                  * example:
-                 * 000001000030037299999
+                 * 1000030037299999
                  */
                 posDataDe61?: string;
                 /**
@@ -2926,7 +3204,7 @@ declare namespace Components {
                 respCodeDe39?: string;
                 /**
                  * example:
-                 * 010900006720
+                 * 10900006720
                  */
                 retRefNoDe37?: string;
                 /**
@@ -3156,7 +3434,7 @@ declare namespace Components {
             businessAddress?: /* businessAddress */ BusinessAddress;
         }
         /**
-         * Service
+         * service
          * Utilisation Level Type
          */
         export interface Service {
@@ -3438,7 +3716,7 @@ declare namespace Components {
             mobileApplicationDetails?: /* mobileApplication */ MobileApplication;
         }
         /**
-         * Webhook
+         * webhook
          */
         export interface Webhook {
             /**
@@ -3467,14 +3745,15 @@ declare namespace Components {
             failedSendingCounter?: number; // int64
         }
         /**
-         * Webhook Event
+         * webhookEvent
          */
         export interface WebhookEvent {
-            webhook?: /* Webhook */ Webhook;
-            events?: string[];
+            webhook?: /* webhook */ Webhook;
+            events?: /* events */ Events;
         }
+        export type WebhookEvents = any;
         /**
-         * Webhook Tokens
+         * webhookToken
          */
         export interface WebhookToken {
             /**
@@ -3528,12 +3807,48 @@ declare namespace Paths {
         namespace Responses {
             export interface $204 {
             }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace AddAccount {
         export type RequestBody = /* newAccount */ Components.Schemas.NewAccount;
         namespace Responses {
             export type $201 = /* account */ Components.Schemas.Account;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace AddBankTransferBatchPayment {
@@ -3556,6 +3871,24 @@ declare namespace Paths {
         export type RequestBody = /* batchItemBankTransferMode1 */ Components.Schemas.BatchItemBankTransferMode1 | /* batchItemBankTransferMode2 */ Components.Schemas.BatchItemBankTransferMode2;
         namespace Responses {
             export type $200 = /* newBatchItemResponse */ Components.Schemas.NewBatchItemResponse;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace AddInternalTransferBatchPayment {
@@ -3606,6 +3939,24 @@ declare namespace Paths {
         }
         namespace Responses {
             export type $200 = /* newBatchItemResponse */ Components.Schemas.NewBatchItemResponse;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace AddInternationalTransferBatchPayment {
@@ -3668,12 +4019,48 @@ declare namespace Paths {
         }
         namespace Responses {
             export type $200 = /* newBatchItemResponse */ Components.Schemas.NewBatchItemResponse;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace Authenticate {
         export type RequestBody = /* authentication */ Components.Schemas.AuthenticationData;
         namespace Responses {
-            export type $200 = /* accessToken */ Components.Schemas.AccessToken;
+            export type $201 = /* accessToken */ Components.Schemas.AccessToken;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace BlockCard {
@@ -3688,6 +4075,24 @@ declare namespace Paths {
         }
         namespace Responses {
             export interface $204 {
+            }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
             }
         }
     }
@@ -3711,6 +4116,24 @@ declare namespace Paths {
         namespace Responses {
             export interface $200 {
             }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace CancelMandateByUuid {
@@ -3733,47 +4156,96 @@ declare namespace Paths {
         namespace Responses {
             export interface $204 {
             }
-        }
-    }
-    namespace ChangeAccountConfig {
-        namespace Parameters {
             /**
-             * The unique id for the account
-             * example:
-             * 12345
+             * apiErrors
              */
-            export type Ican = string;
-        }
-        export interface PathParameters {
-            ican: /**
-             * The unique id for the account
-             * example:
-             * 12345
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
              */
-            Parameters.Ican;
-        }
-        export type RequestBody = /* Account Configuration */ Components.Schemas.AccountConfiguration;
-        namespace Responses {
-            export interface $204 {
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
             }
         }
     }
     namespace CreateApiApplication {
         export type RequestBody = /* newApiApplication */ Components.Schemas.NewApiApplication;
         namespace Responses {
-            export type $200 = /* apiApplication */ Components.Schemas.Application;
+            export type $201 = /* apiApplicationCreated */ Components.Schemas.AppCreated;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace CreateBatchPayment {
         export type RequestBody = /* newBatch */ Components.Schemas.NewBatch;
         namespace Responses {
             export type $200 = /* newBatchResponse */ Components.Schemas.NewBatchResponse;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace CreateNewCard {
         export type RequestBody = /* newCard */ Components.Schemas.NewCard;
         namespace Responses {
             export type $200 = /* newCardResponse */ Components.Schemas.NewCardResponse;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace DeleteBankTransferBatchPayment {
@@ -3800,6 +4272,24 @@ declare namespace Paths {
         }
         namespace Responses {
             export interface $200 {
+            }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
             }
         }
     }
@@ -3835,6 +4325,24 @@ declare namespace Paths {
         namespace Responses {
             export interface $200 {
             }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace DeleteInternationalTransferBatchPayment {
@@ -3862,6 +4370,24 @@ declare namespace Paths {
         namespace Responses {
             export interface $200 {
             }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace GetAccountById {
@@ -3879,7 +4405,19 @@ declare namespace Paths {
             /**
              * apiErrors
              */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
             export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
                 errors?: /* apiError */ Components.Schemas.ApiError[];
             }
         }
@@ -3895,7 +4433,19 @@ declare namespace Paths {
             /**
              * apiErrors
              */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
             export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
                 errors?: /* apiError */ Components.Schemas.ApiError[];
             }
         }
@@ -3906,19 +4456,41 @@ declare namespace Paths {
              * activities
              */
             export interface $200 {
-                cards?: /* Activity */ Components.Schemas.Activity[];
+                activities?: /* activity */ Components.Schemas.Activity[];
             }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
             export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
             }
         }
     }
     namespace GetAllPermissions {
         namespace Responses {
             /**
-             * API App Permissions
+             * apiAppPermissions
              */
             export interface $200 {
-                permissions?: /* API App permission */ Components.Schemas.Permission[];
+                permissions?: /* apiAppPermission */ Components.Schemas.Permission[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
             }
             /**
              * apiErrors
@@ -3926,13 +4498,28 @@ declare namespace Paths {
             export interface $401 {
                 errors?: /* apiError */ Components.Schemas.ApiError[];
             }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace GetApiApplications {
         namespace Responses {
-            export type $200 = {
-                application?: /* apiApplication */ Components.Schemas.Application[];
-            }[];
+            /**
+             * apiApplications
+             */
+            export interface $200 {
+                applications?: /* apiApplication */ Components.Schemas.Application[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
             /**
              * apiErrors
              */
@@ -3949,12 +4536,6 @@ declare namespace Paths {
     }
     namespace GetBatches {
         namespace Parameters {
-            /**
-             * The status of the batch if internal transfer.
-             * example:
-             * SUBMITTED
-             */
-            export type BatchStatus = "SUBMITTED" | "REMOVED" | "SUCCEEDED" | "FAILED";
             /**
              * The type of the batch. Can be one of the listed enums.
              * example:
@@ -3987,12 +4568,6 @@ declare namespace Paths {
             export type OrderBy = "DATE";
         }
         export interface QueryParameters {
-            batchStatus?: /**
-             * The status of the batch if internal transfer.
-             * example:
-             * SUBMITTED
-             */
-            Parameters.BatchStatus;
             batchTypes?: /**
              * The type of the batch. Can be one of the listed enums.
              * example:
@@ -4035,7 +4610,25 @@ declare namespace Paths {
                  * 1
                  */
                 total?: number; // int64
-                items?: /* batchItem */ Components.Schemas.BatchItem[];
+                batchRequests?: /* batchItem */ Components.Schemas.BatchRequest[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
             }
         }
     }
@@ -4058,6 +4651,24 @@ declare namespace Paths {
         }
         namespace Responses {
             export type $200 = /* batch */ Components.Schemas.Batch;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace GetDirectDebitByUuid {
@@ -4079,6 +4690,24 @@ declare namespace Paths {
         }
         namespace Responses {
             export type $200 = /* directDebit */ Components.Schemas.DirectDebit;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace GetDirectDebitMandates {
@@ -4094,6 +4723,24 @@ declare namespace Paths {
                  */
                 total?: number; // int64
                 mandates?: /* mandate */ Components.Schemas.Mandate[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
             }
         }
     }
@@ -4117,26 +4764,60 @@ declare namespace Paths {
                 total?: number; // int64
                 directdebits?: /* directDebit */ Components.Schemas.DirectDebit[];
             }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace GetFXRates {
         namespace Parameters {
             /**
-             * The currency the money is currently in
-             */
-            export type FromCurrency = string;
-            /**
              * The currency the money is being converted to
              */
-            export type ToCurrency = string;
+            export type BuyCurrency = string;
+            /**
+             * The currency the money is currently in
+             */
+            export type SellCurrency = string;
         }
-        export interface PathParameters {
-            fromCurrency: /* The currency the money is currently in */ Parameters.FromCurrency;
-            toCurrency: /* The currency the money is being converted to */ Parameters.ToCurrency;
+        export interface QueryParameters {
+            sellCurrency: /* The currency the money is currently in */ Parameters.SellCurrency;
+            buyCurrency: /* The currency the money is being converted to */ Parameters.BuyCurrency;
         }
         namespace Responses {
-            export type $200 = /* Get FX Rates */ Components.Schemas.FxRate;
+            export type $200 = /* getFXRates */ Components.Schemas.FxRate;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
             export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
             }
         }
     }
@@ -4185,7 +4866,7 @@ declare namespace Paths {
         }
         namespace Responses {
             /**
-             * batchItems
+             * batchItemsBankTRansfer
              */
             export interface $200 {
                 /**
@@ -4194,7 +4875,25 @@ declare namespace Paths {
                  * 1
                  */
                 total?: number; // int64
-                items?: /* batchItem */ Components.Schemas.BatchItem[];
+                items?: /* batchItem */ Components.Schemas.BatchItemBankTransfer[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
             }
         }
     }
@@ -4243,7 +4942,7 @@ declare namespace Paths {
         }
         namespace Responses {
             /**
-             * batchItems
+             * batchItemsInternationalTransfer
              */
             export interface $200 {
                 /**
@@ -4252,7 +4951,29 @@ declare namespace Paths {
                  * 1
                  */
                 total?: number; // int64
-                items?: /* batchItem */ Components.Schemas.BatchItem[];
+                items?: /**
+                 * batchItem-internaltransfer
+                 * The items contained in an internal transfer batch
+                 */
+                Components.Schemas.BatchItemInternalTransfer[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
             }
         }
     }
@@ -4301,7 +5022,7 @@ declare namespace Paths {
         }
         namespace Responses {
             /**
-             * batchItems
+             * batchItemsInternationalTransfer
              */
             export interface $200 {
                 /**
@@ -4310,14 +5031,52 @@ declare namespace Paths {
                  * 1
                  */
                 total?: number; // int64
-                items?: /* batchItem */ Components.Schemas.BatchItem[];
+                items?: /**
+                 * batchItem-internaltransfer
+                 * The items contained in an internal transfer batch
+                 */
+                Components.Schemas.BatchItemInternationalTransfer[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
             }
         }
     }
     namespace GetLimits {
         namespace Responses {
-            export type $200 = /* limitInfo */ Components.Schemas.Limit;
+            export type $200 = /* limit */ Components.Schemas.Limit;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
             export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
             }
         }
     }
@@ -4341,6 +5100,24 @@ declare namespace Paths {
                 total?: number;
                 aspsps?: /* aspsp */ Components.Schemas.Aspsp[];
             }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace GetListofApproversForBatch {
@@ -4362,6 +5139,24 @@ declare namespace Paths {
         }
         namespace Responses {
             export type $200 = /* batchApprovers */ Components.Schemas.BatchApprover;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace GetListofCardTransactions {
@@ -4405,6 +5200,12 @@ declare namespace Paths {
             /**
              * apiErrors
              */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
             export interface $401 {
                 errors?: /* apiError */ Components.Schemas.ApiError[];
             }
@@ -4423,6 +5224,12 @@ declare namespace Paths {
              */
             export interface $200 {
                 cards?: /* card */ Components.Schemas.Card[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
             }
             /**
              * apiErrors
@@ -4457,6 +5264,24 @@ declare namespace Paths {
         }
         namespace Responses {
             export type $200 = /* mandate */ Components.Schemas.Mandate;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace GetNewPayeeBatch {
@@ -4477,7 +5302,25 @@ declare namespace Paths {
             Parameters.BatchUuid;
         }
         namespace Responses {
-            export type $200 = /* New Payee Batch */ Components.Schemas.NewPayeesBatch;
+            export type $200 = /* newPayeeBatch */ Components.Schemas.NewPayeesBatch;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
         }
     }
     namespace GetPayeeDetails {
@@ -4499,6 +5342,24 @@ declare namespace Paths {
         }
         namespace Responses {
             export type $200 = /* payee */ Components.Schemas.Payee;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace GetPayeeTransactions {
@@ -4540,6 +5401,18 @@ declare namespace Paths {
             /**
              * apiErrors
              */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
             export interface $403 {
                 errors?: /* apiError */ Components.Schemas.ApiError[];
             }
@@ -4573,27 +5446,24 @@ declare namespace Paths {
                 total?: number;
                 fundingSources?: /* payee */ Components.Schemas.Payee[];
             }
-        }
-    }
-    namespace GetPaymentDetails {
-        namespace Parameters {
             /**
-             * The unique id for the transaction.
-             * example:
-             * 4ADFB67A-0F5B-4A9A-9D74-34437250045C
+             * apiErrors
              */
-            export type PaymentUuid = string;
-        }
-        export interface PathParameters {
-            paymentUuid: /**
-             * The unique id for the transaction.
-             * example:
-             * 4ADFB67A-0F5B-4A9A-9D74-34437250045C
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
              */
-            Parameters.PaymentUuid;
-        }
-        namespace Responses {
-            export type $200 = /* paymentRequestPayment */ Components.Schemas.PaymentRequestPayment;
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace GetPaymentDetailsv2 {
@@ -4615,6 +5485,24 @@ declare namespace Paths {
         }
         namespace Responses {
             export type $200 = /* paymentRequestPayment */ Components.Schemas.PaymentRequestPayment;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
         }
     }
     namespace GetPaymentRequestDetails {
@@ -4636,37 +5524,23 @@ declare namespace Paths {
         }
         namespace Responses {
             export type $200 = /* paymentRequest */ Components.Schemas.PaymentRequest;
-        }
-    }
-    namespace GetPaymentRequestPayments {
-        namespace Parameters {
             /**
-             * The unique 8-character code identifying the payment request.
-             * example:
-             * 1234abcd
+             * apiErrors
              */
-            export type PaymentRequestCode = string;
-        }
-        export interface PathParameters {
-            paymentRequestCode: /**
-             * The unique 8-character code identifying the payment request.
-             * example:
-             * 1234abcd
-             */
-            Parameters.PaymentRequestCode;
-        }
-        namespace Responses {
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
             /**
-             * paymentrequestpayments
+             * apiErrors
              */
-            export interface $200 {
-                /**
-                 * The total number of payment request payments in the list.
-                 * example:
-                 * 1
-                 */
-                total?: number; // int64
-                pisPaymentRequestPayments?: /* paymentRequestPayment */ Components.Schemas.PaymentRequestPayment[];
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
             }
         }
     }
@@ -4689,6 +5563,24 @@ declare namespace Paths {
         }
         namespace Responses {
             export type $200 = /* paymentRequestPayment */ Components.Schemas.PaymentRequestPayment;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
         }
     }
     namespace GetPaymentRequestReportV2 {
@@ -4709,12 +5601,48 @@ declare namespace Paths {
             Parameters.PaymentRequestCode;
         }
         namespace Responses {
-            export type $200 = /* PaymentRequestReport */ Components.Schemas.PaymentRequestReport;
+            export type $200 = /* paymentRequestReport */ Components.Schemas.PaymentRequestReport;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
         }
     }
     namespace GetPaymentRequestsSentV2 {
         namespace Responses {
-            export type $200 = /* PaymentRequestsSent */ Components.Schemas.PaymentRequestsSent;
+            export type $200 = /* paymentRequestsSent */ Components.Schemas.PaymentRequestsSent;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
         }
     }
     namespace GetPermissions {
@@ -4729,10 +5657,16 @@ declare namespace Paths {
         }
         namespace Responses {
             /**
-             * API App Permissions
+             * apiAppPermissions
              */
             export interface $200 {
-                permissions?: /* API App permission */ Components.Schemas.Permission[];
+                permissions?: /* apiAppPermission */ Components.Schemas.Permission[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
             }
             /**
              * apiErrors
@@ -4740,9 +5674,15 @@ declare namespace Paths {
             export interface $401 {
                 errors?: /* apiError */ Components.Schemas.ApiError[];
             }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
-    namespace GetPublicPaymentRequestV2 {
+    namespace GetPublicPaymentRequest {
         namespace Parameters {
             /**
              * The unique 8-character code identifying the payment request.
@@ -4761,121 +5701,49 @@ declare namespace Paths {
         }
         namespace Responses {
             export type $200 = /* publicPaymentRequest */ Components.Schemas.PublicPaymentRequest;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
         }
     }
-    namespace GetServices {
+    namespace GetServiceFees {
         namespace Responses {
             /**
              * businessServices
              */
-            export type $200 = /* businessServices */ Components.Schemas.BusinessService[];
+            export type $200 = /* businessService */ Components.Schemas.BusinessService[];
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
             export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
             }
-        }
-    }
-    namespace GetTransactionsByAccountIdFiltered {
-        namespace Parameters {
             /**
-             * A millisecond epoch time specifying the date range start date.
+             * apiErrors
              */
-            export type DateRangeFrom = number; // int64
-            /**
-             * A millisecond epoch time specifying the date range end date.
-             */
-            export type DateRangeTo = number; // int64
-            /**
-             * The ican of the account to retrieve
-             */
-            export type Ican = number; // int64
-            /**
-             * The number of records to return. Defaults to 10 - max is 200.
-             */
-            export type Limit = number; // int64
-            /**
-             * The page offset. Defaults to 0. This is the record number that the returned list will start at. E.g. offset = 40 and limit = 20 will return records 40 to 59.
-             */
-            export type Offset = number; // int64
-            /**
-             * Search term to filter by from the reference field (`myRef`).
-             */
-            export type SearchKeyword = string;
-            /**
-             * One or more of the transaction types above. This field can be repeated multiple times to allow for multiple transaction types.
-             */
-            export type TransactionTypes = string[];
-        }
-        export interface PathParameters {
-            ican: /* The ican of the account to retrieve */ Parameters.Ican /* int64 */;
-        }
-        export interface QueryParameters {
-            dateRangeFrom: /* A millisecond epoch time specifying the date range start date. */ Parameters.DateRangeFrom /* int64 */;
-            dateRangeTo: /* A millisecond epoch time specifying the date range end date. */ Parameters.DateRangeTo /* int64 */;
-            searchKeyword: /* Search term to filter by from the reference field (`myRef`). */ Parameters.SearchKeyword;
-            transactionTypes: /* One or more of the transaction types above. This field can be repeated multiple times to allow for multiple transaction types. */ Parameters.TransactionTypes;
-            offset: /* The page offset. Defaults to 0. This is the record number that the returned list will start at. E.g. offset = 40 and limit = 20 will return records 40 to 59. */ Parameters.Offset /* int64 */;
-            limit: /* The number of records to return. Defaults to 10 - max is 200. */ Parameters.Limit /* int64 */;
-        }
-        namespace Responses {
-            /**
-             * transactionsv1
-             */
-            export interface $200 {
-                /**
-                 * The total number of card transactions in the list.
-                 * example:
-                 * 1
-                 */
-                total?: number; // int64
-                /**
-                 * milisecond timestamp of date range to value.
-                 * example:
-                 * 1547744156603
-                 */
-                dateRangeTo?: number; // int64
-                transactions?: /* transaction */ Components.Schemas.Transaction[];
-            }
-        }
-    }
-    namespace GetTransactionsByAccountIdv1 {
-        namespace Parameters {
-            /**
-             * The ican of the account to retrieve
-             */
-            export type Ican = number; // int64
-            /**
-             * The number of records to return. Defaults to 10 - max is 200.
-             */
-            export type Limit = number; // int64
-            /**
-             * The page offset. Defaults to 0. This is the record number that the returned list will start at. E.g. offset = 40 and limit = 20 will return records 40 to 59.
-             */
-            export type Offset = number; // int64
-        }
-        export interface PathParameters {
-            ican: /* The ican of the account to retrieve */ Parameters.Ican /* int64 */;
-        }
-        export interface QueryParameters {
-            limit: /* The number of records to return. Defaults to 10 - max is 200. */ Parameters.Limit /* int64 */;
-            offset: /* The page offset. Defaults to 0. This is the record number that the returned list will start at. E.g. offset = 40 and limit = 20 will return records 40 to 59. */ Parameters.Offset /* int64 */;
-        }
-        namespace Responses {
-            /**
-             * transactionsv1
-             */
-            export interface $200 {
-                /**
-                 * The total number of card transactions in the list.
-                 * example:
-                 * 1
-                 */
-                total?: number; // int64
-                /**
-                 * milisecond timestamp of date range to value.
-                 * example:
-                 * 1547744156603
-                 */
-                dateRangeTo?: number; // int64
-                transactions?: /* transaction */ Components.Schemas.Transaction[];
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
             }
         }
     }
@@ -4913,7 +5781,7 @@ declare namespace Paths {
         }
         namespace Responses {
             /**
-             * transactionsv3
+             * transactions
              */
             export interface $200 {
                 links?: {
@@ -4931,6 +5799,24 @@ declare namespace Paths {
                     href?: string;
                 }[];
                 content?: /* transaction */ Components.Schemas.Transaction[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV3[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV3[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV3[];
             }
         }
     }
@@ -4953,6 +5839,24 @@ declare namespace Paths {
         }
         namespace Responses {
             export type $200 = /* user */ Components.Schemas.User;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace GetUserAddress {
@@ -4973,18 +5877,95 @@ declare namespace Paths {
             Parameters.UserId /* int64 */;
         }
         namespace Responses {
-            export type $200 = /* Get User Address */ Components.Schemas.Address;
+            export type $200 = /* userAddress */ Components.Schemas.Address;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
         }
     }
     namespace GetUsers {
         namespace Responses {
             export type $200 = /* user */ Components.Schemas.User[];
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+        }
+    }
+    namespace GetWebhookEvents {
+        namespace Responses {
+            export type $200 = any;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
         }
     }
     namespace NewPaymentRequest {
         export type RequestBody = /* newPaymentRequest */ Components.Schemas.NewPaymentRequest;
         namespace Responses {
-            export type $200 = /* newPaymentRequestResponse */ Components.Schemas.PaymentRequestResponse;
+            export type $201 = /* newPaymentRequestResponse */ Components.Schemas.PaymentRequestResponse;
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace RejectDirectDebit {
@@ -5006,6 +5987,24 @@ declare namespace Paths {
         }
         namespace Responses {
             export interface $204 {
+            }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
             }
         }
     }
@@ -5041,6 +6040,24 @@ declare namespace Paths {
         namespace Responses {
             export interface $200 {
             }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
         }
     }
     namespace SubmitBatch {
@@ -5063,6 +6080,24 @@ declare namespace Paths {
         namespace Responses {
             export interface $204 {
             }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
     namespace UnblockCard {
@@ -5077,6 +6112,65 @@ declare namespace Paths {
         }
         namespace Responses {
             export interface $204 {
+            }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+        }
+    }
+    namespace UpdateAccountConfig {
+        namespace Parameters {
+            /**
+             * The unique id for the account
+             * example:
+             * 12345
+             */
+            export type Ican = string;
+        }
+        export interface PathParameters {
+            ican: /**
+             * The unique id for the account
+             * example:
+             * 12345
+             */
+            Parameters.Ican;
+        }
+        export type RequestBody = /* accountConfiguration */ Components.Schemas.AccountConfiguration;
+        namespace Responses {
+            export interface $204 {
+            }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
             }
         }
     }
@@ -5097,12 +6191,31 @@ declare namespace Paths {
              */
             Parameters.MandateUuid;
         }
+        export type RequestBody = /* Alias */ Components.Schemas.Alias;
         namespace Responses {
             export interface $204 {
             }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiError[];
+            }
         }
     }
-    namespace UpdatePaymentRequests {
+    namespace UpdatePaymentRequest {
         namespace Parameters {
             /**
              * The code of the payment request to update
@@ -5122,6 +6235,24 @@ declare namespace Paths {
         namespace Responses {
             export interface $204 {
             }
+            /**
+             * apiErrors
+             */
+            export interface $400 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $401 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
+            /**
+             * apiErrors
+             */
+            export interface $403 {
+                errors?: /* apiError */ Components.Schemas.ApiErrorV2[];
+            }
         }
     }
 }
@@ -5130,17 +6261,17 @@ export interface OperationMethods {
   /**
    * authenticate - Authenticate with the API.
    * 
-   * Access to the API is by Bearer Access Tokens. These are valid for 15 minutes. You can have multiple Access Tokens active at the same time if needed. See the [Guide to Authentication](/docs/authentication) for full details.
+   * This endpoint is needed to generate your access token. Access to the API is by Bearer Access Tokens. These are valid for 15 minutes. You can have multiple Access Tokens active at the same time if needed. See the [Guide to Authentication](/docs/authentication) for full details.
    */
   'authenticate'(
     parameters?: Parameters<UnknownParamsObject> | null,
     data?: Paths.Authenticate.RequestBody,
     config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.Authenticate.Responses.$200>
+  ): OperationResponse<Paths.Authenticate.Responses.$201>
   /**
-   * getAccounts - List Accounts
+   * getAccounts - List accounts
    * 
-   * Returns all your fire.com Accounts. Ordered by Alias ascending. Can be paginated.
+   * This endpoint returns all the accounts on your Fire profile. Ordered by Alias ascending. Can be paginated. You will need to enable PERM_BUSINESS_GET_ACCOUNTS to use this endpoint.
    */
   'getAccounts'(
     parameters?: Parameters<UnknownParamsObject> | null,
@@ -5148,9 +6279,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetAccounts.Responses.$200>
   /**
-   * addAccount - Create a new Fire Account
+   * addAccount - Create a new Fire Account.
    * 
-   * Creates a new fire.com account.
+   * This endpoint will create a new Fire account on your profile. You will need to enable PERM_BUSINESS_POST_ACCOUNTS to use this endpoint.
    * 
    * **Please note there is a charge associated with creating a new account.**
    * 
@@ -5161,9 +6292,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.AddAccount.Responses.$201>
   /**
-   * getActivities - Get Account Activity
+   * getActivities - Get activity
    * 
-   * Retrieve the details of activity on your fire.com Account
+   * This endpoint will retrieve the details of all activity on your Fire Accounts. You will need to enable PERM_BUSINESS_GET_ACTIVITIES to use this endpoint.
    */
   'getActivities'(
     parameters?: Parameters<UnknownParamsObject> | null,
@@ -5171,9 +6302,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetActivities.Responses.$200>
   /**
-   * getAccountById - Get details of an Account
+   * getAccountById - Get details of an account
    * 
-   * You can retrieve the details of a fire.com Account by its `ican`.
+   * This endpoint will return an array of information about the account. You can retrieve the details of a Fire  Account by its `ican`. You will need to enable PERM_BUSINESS_GET_ACCOUNT to use this endpoint.
    */
   'getAccountById'(
     parameters?: Parameters<Paths.GetAccountById.PathParameters> | null,
@@ -5181,19 +6312,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetAccountById.Responses.$200>
   /**
-   * getTransactionsByAccountIdv1 - List transactions on an account (v1)
+   * getTransactionsByAccountIdv3 - List transactions for an account
    * 
-   * Retrieve a list of transactions against an account. Recommended to use the v3 endpoint instead.
-   */
-  'getTransactionsByAccountIdv1'(
-    parameters?: Parameters<Paths.GetTransactionsByAccountIdv1.QueryParameters & Paths.GetTransactionsByAccountIdv1.PathParameters> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetTransactionsByAccountIdv1.Responses.$200>
-  /**
-   * getTransactionsByAccountIdv3 - List transactions for an account (v3)
-   * 
-   * Retrieve a list of transactions against an account. Initially, use the optional `limit`, `dateRangeFrom` and `dateRangeTo` query params to limit your query, then use the embedded `next` or `prev` links in the response to get newer or older pages.
+   * This endpoint will retrieve a list of transactions against an account. Initially, use the optional `limit`, `dateRangeFrom` and `dateRangeTo` query params to limit your query, then use the embedded `next` or `prev` links in the response to get newer or older pages. You will need to enable PERM_BUSINESS_GET_ACCOUNT_TRANSACTIONS to use this endpoint.
    * 
    */
   'getTransactionsByAccountIdv3'(
@@ -5202,26 +6323,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetTransactionsByAccountIdv3.Responses.$200>
   /**
-   * getTransactionsByAccountIdFiltered - Filter transactions on an account (v1)
+   * getListofCards - List debit cards
    * 
-   * Retrieve a filtered list of transactions against an account. Recommended to use the v3 endpoint instead.
-   * * `dateRangeFrom` - A millisecond epoch time specifying the date range start date.
-   * * `dateRangeTo` - A millisecond epoch time specifying the date range end date.
-   * * `searchKeyword` - Search term to filter by from the reference field (`myRef`).
-   * * `transactionTypes` - One or more of the transaction types above. This field can be repeated multiple times to allow for multiple transaction types.
-   * * `offset` - The page offset. Defaults to 0. This is the record number that the returned list will start at. E.g. offset = 40 and limit = 20 will return records 40 to 59.
-   * * `limit` - the number of items to return. 
-   * 
-   */
-  'getTransactionsByAccountIdFiltered'(
-    parameters?: Parameters<Paths.GetTransactionsByAccountIdFiltered.QueryParameters & Paths.GetTransactionsByAccountIdFiltered.PathParameters> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetTransactionsByAccountIdFiltered.Responses.$200>
-  /**
-   * getListofCards - List Debit Cards
-   * 
-   * Returns a list of cards related to your fire.com account.
+   * This endpoint returns a list of cards related to your Fire account. You will need to enable PERM_BUSINESS_GET_CARDS to use this endpoint.
    */
   'getListofCards'(
     parameters?: Parameters<UnknownParamsObject> | null,
@@ -5231,7 +6335,7 @@ export interface OperationMethods {
   /**
    * createNewCard - Create a new Fire debit card
    * 
-   * You can create multiple debit cards which can be linked to your fire.com accounts.
+   * This endpoint allows you to create a debit card to be linked to your Fire account. You can create multiple debit cards which can be linked to your Fire accounts. You will need to enable PERM_BUSINESS_POST_CARDS to use this endpoint.
    */
   'createNewCard'(
     parameters?: Parameters<UnknownParamsObject> | null,
@@ -5239,9 +6343,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.CreateNewCard.Responses.$200>
   /**
-   * getListofCardTransactions - Get a list of Debit Card Transactions
+   * getListofCardTransactions - Get a list of debit card transactions
    * 
-   * Returns a list of cards transactions related to your fire.com card.
+   * This endpoint returns a list of cards transactions related to your Fire card. You will need to enable PERM_BUSINESS_GET_MY_CARD_TRANSACTIONS to use this endpoint.
    */
   'getListofCardTransactions'(
     parameters?: Parameters<Paths.GetListofCardTransactions.QueryParameters & Paths.GetListofCardTransactions.PathParameters> | null,
@@ -5249,9 +6353,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetListofCardTransactions.Responses.$200>
   /**
-   * blockCard - Block a Fire Debit card
+   * blockCard - Block a Fire debit card
    * 
-   * Updates status of an existing card to block which prevents any transactions being carried out with that card.
+   * This endpoint allows you to block a card on your Fire account. This updates the status of an existing card to block which prevents any transactions being carried out with that card. You will need to enable PERM_BUSINESS_POST_MY_CARD_BLOCK to use this endpoint.
    */
   'blockCard'(
     parameters?: Parameters<Paths.BlockCard.PathParameters> | null,
@@ -5261,7 +6365,7 @@ export interface OperationMethods {
   /**
    * unblockCard - Unblock a Fire debit card
    * 
-   * Updates status of an existing card to unblock which means that transactions can be carried out with that card.
+   * This endpoint updates status of an existing card to unblock which means that transactions can be carried out with that card. You will need to enable PERM_BUSINESS_POST_MY_CARD_UNBLOCK to use this endpoint.
    */
   'unblockCard'(
     parameters?: Parameters<Paths.UnblockCard.PathParameters> | null,
@@ -5269,20 +6373,20 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.UnblockCard.Responses.$204>
   /**
-   * newPaymentRequest - Create a Payment request
+   * newPaymentRequest - Create a payment request
    * 
-   * This request creates a new Open Banking Payment request. A code is returned that can be shared to your customers as a URL by any channel you wish. See our [Guide to Fire Open Payments](/docs/fire-open-payments) for more details. You will need to enable the `PERM_BUSINESS_POST_PAYMENT_REQUEST` permission to use this endpoint.
+   * This endpoint creates a new Open Banking Payment request. A code is returned that can be shared to your customers as a URL by any channel you wish. See our [Guide to Fire Open Payments](/docs/fire-open-payments) for more details. You will need to enable PERM_BUSINESS_POST_PAYMENT_REQUEST to use this endpoint. 
    * 
    */
   'newPaymentRequest'(
     parameters?: Parameters<UnknownParamsObject> | null,
     data?: Paths.NewPaymentRequest.RequestBody,
     config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.NewPaymentRequest.Responses.$200>
+  ): OperationResponse<Paths.NewPaymentRequest.Responses.$201>
   /**
-   * getPaymentRequestDetails - Get Payment Details
+   * getPaymentRequestDetails - Get payment request details
    * 
-   * Retrieve the details of an Open Banking Payment request
+   * This endpoint will retrieve the details of an Open Banking Payment requestYou will need to enable PERM_BUSINESS_GET_PAYMENT_REQUEST to use this endpoint.
    * 
    */
   'getPaymentRequestDetails'(
@@ -5291,20 +6395,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetPaymentRequestDetails.Responses.$200>
   /**
-   * getPaymentRequestPayments - Get list of all Payment Attempts related to a Payment Request
+   * getPaymentRequestPaymentsv2 - Get list of all payment attempts related to a payment request
    * 
-   * Retrieve the list of payments attempted against an Open Banking Payment request
-   * 
-   */
-  'getPaymentRequestPayments'(
-    parameters?: Parameters<Paths.GetPaymentRequestPayments.PathParameters> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetPaymentRequestPayments.Responses.$200>
-  /**
-   * getPaymentRequestPaymentsv2 - Get list of all Payment Attempts related to a Payment Request
-   * 
-   * Retrieve the list of payments attempted against an Open Banking Payment request
+   * This endpoint will retrieve the list of payments attempted against an Open Banking Payment request. You will need to enable PERM_BUSINESS_GET_PAYMENT_REQUEST_PAYMENTS to use this endpoint.
    * 
    */
   'getPaymentRequestPaymentsv2'(
@@ -5313,9 +6406,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetPaymentRequestPaymentsv2.Responses.$200>
   /**
-   * getPaymentRequestReportV2 - Get a report from a Payment Request
+   * getPaymentRequestReportV2 - Get a report from a payment request
    * 
-   * Retrieve a report for an Open Banking Payment request
+   * This endpoint will retrieve a report for an Open Banking Payment request. You will need to enable PERM_BUSINESS_GET_PAYMENT_REQUEST_REPORTS to use this endpoint.
    * 
    */
   'getPaymentRequestReportV2'(
@@ -5324,9 +6417,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetPaymentRequestReportV2.Responses.$200>
   /**
-   * getPaymentRequestsSentV2 - Get a list of Payment Request transactions
+   * getPaymentRequestsSentV2 - Get a list of payment request transactions
    * 
-   * Retrieve the list of open banking payment requests made on your account
+   * This endpoint will retrieve the list of open banking payment requests made on your account. You will need to enable PERM_BUSINESS_GET_PAYMENT_REQUEST_TRANSACTIONS to use this endpoint.
    * 
    */
   'getPaymentRequestsSentV2'(
@@ -5335,59 +6428,69 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetPaymentRequestsSentV2.Responses.$200>
   /**
-   * GetPublicPaymentRequestV2 - List details of a public payment request
+   * getPublicPaymentRequest - List details of a public payment request
    * 
-   * Returns an object of payment request information
+   * This endpoint returns an object of payment request information. You will need to enable PERM_BUSINESS_GET_PUBLIC_PAYMENT_REQUEST to use this endpoint.
    */
-  'GetPublicPaymentRequestV2'(
-    parameters?: Parameters<Paths.GetPublicPaymentRequestV2.PathParameters> | null,
+  'getPublicPaymentRequest'(
+    parameters?: Parameters<Paths.GetPublicPaymentRequest.PathParameters> | null,
     data?: any,
     config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetPublicPaymentRequestV2.Responses.$200>
+  ): OperationResponse<Paths.GetPublicPaymentRequest.Responses.$200>
   /**
-   * GetFXRates - Get FX Rates
+   * getFXRates - Get FX rates
    * 
-   * Return exchange rate between two currencies
+   * This endpoint returns the exchange rate between two currencies. You will need to enable PERM_BUSINESS_GET_FX_RATE to use this endpoint.
    */
-  'GetFXRates'(
-    parameters?: Parameters<Paths.GetFXRates.PathParameters> | null,
+  'getFXRates'(
+    parameters?: Parameters<Paths.GetFXRates.QueryParameters> | null,
     data?: any,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetFXRates.Responses.$200>
   /**
-   * GetLimits - List all Limits
+   * getLimits - List all limits
    * 
-   * Returns an array of limit information
+   * This endpoint returns an array of limit information. You will need to enable PERM_BUSINESS_GET_LIMITS to use this endpoint.
    */
-  'GetLimits'(
+  'getLimits'(
     parameters?: Parameters<UnknownParamsObject> | null,
     data?: any,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetLimits.Responses.$200>
   /**
-   * changeAccountConfig - Update Account Configuration
+   * updateAccountConfig - Update account configuration
    * 
-   * Changes the name associated with an account
+   * This endpoint changes the name associated with an account. You will need to enable PERM_BUSINESS_PUT_ACCOUNT to use this endpoint.
    */
-  'changeAccountConfig'(
-    parameters?: Parameters<Paths.ChangeAccountConfig.PathParameters> | null,
-    data?: Paths.ChangeAccountConfig.RequestBody,
+  'updateAccountConfig'(
+    parameters?: Parameters<Paths.UpdateAccountConfig.PathParameters> | null,
+    data?: Paths.UpdateAccountConfig.RequestBody,
     config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.ChangeAccountConfig.Responses.$204>
+  ): OperationResponse<Paths.UpdateAccountConfig.Responses.$204>
   /**
-   * SendTestWebhook - Send test webhooks
+   * sendTestWebhook - Send test webhooks
    * 
-   * Sends a test webhook response for a selected event to the chosen URL
+   * This endpoint sends a test webhook response for a selected event to the chosen URL. You will need to enable PERM_BUSINESS_GET_WEBHOOK_EVENT_TEST to use this endpoint.
    */
-  'SendTestWebhook'(
+  'sendTestWebhook'(
     parameters?: Parameters<Paths.SendTestWebhook.PathParameters> | null,
     data?: any,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.SendTestWebhook.Responses.$200>
   /**
+   * getWebhookEvents - List all webhooks
+   * 
+   * This endpoint lists all webhooks on your Fire account. You will need to enable PERM_BUSINESS_GET_WEBHOOKS to use this endpoint.
+   */
+  'getWebhookEvents'(
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetWebhookEvents.Responses.$200>
+  /**
    * getNewPayeeBatch - List new payees in a batch
    * 
-   * Retrieve a list of details of batch items with new payees
+   * This endpoint will retrieve a list of details of batch items with new payees. You will need to enable PERM_BUSINESS_GET_BATCH_NEWPAYEES to use this endpoint.
    * 
    */
   'getNewPayeeBatch'(
@@ -5396,34 +6499,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetNewPayeeBatch.Responses.$200>
   /**
-   * getPaymentDetails - Get Payment Details
+   * getPaymentDetailsv2 - Get payment details
    * 
-   * Returns the details of a specific payment.
-   * 
-   * As the customer goes through the process of making the payment the status of the payment will change.
-   * 
-   * * `AWAITING_AUTHORISATION` -This is the initial status of all your payments.
-   * * `AWAITING_MULTI_AUTHORISATION` - Some business accounts such as charities require dual authorisation.
-   * * `NOT_AUTHORISED` - Either your customer clicked on cancel or the payment was rejected by their ASPSP / bank.
-   * * `PENDING` - This is the status that your payment is set to after the customer has authorised the payment with their ASPSP / bank but the bank may want to carry out another check before funding the transaction.
-   * * `AUTHORISED` - This is the status that your payment is set to after the customer has authorised the payment with their ASPSP / bank.
-   * * `PAID` - Funds were received into your fire.com GBP or EUR account from your customer’s ASPSP / bank.
-   * 
-   * 
-   * You will need to enable the `PERM_BUSINESS_GET_PAYMENT` permission to use this endpoint.
-   * 
-   */
-  'getPaymentDetails'(
-    parameters?: Parameters<Paths.GetPaymentDetails.PathParameters> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetPaymentDetails.Responses.$200>
-  /**
-   * getPaymentDetailsv2 - Get Payment Details (v2)
-   * 
-   * Returns the details of a specific payment.
-   * 
-   * You will need to enable the `PERM_BUSINESS_GET_PAYMENT` permission to use this endpoint.
+   * This endpoint will return the details of a specific open banking payment. You will need to enable PERM_BUSINESS_GET_PAYMENT to use this endpoint.
    * 
    * As your customer goes through the payment submission journey, the payment status will change. The endpoint will return one of the following statuses:
    * 
@@ -5447,7 +6525,7 @@ export interface OperationMethods {
   /**
    * getListOfAspsps - Get list of ASPSPs / Banks
    * 
-   * Returns all ASPSPs (Account Servicing Payment Service Provider) / banks. The list can be filtered by currency. You will need to enable the `PERM_BUSINESS_GET_ASPSPS` permission to use this endpoint.
+   * This endpoint will return all ASPSPs (Account Servicing Payment Service Provider) / banks available to you for open banking payments. The list can be filtered by currency.You will need to enable PERM_BUSINESS_GET_ASPSPS to use this endpoint.
    * ***This endpoint is only required if you intend to host the “Select ASPSP / bank” page yourself.***
    * 
    */
@@ -5457,9 +6535,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetListOfAspsps.Responses.$200>
   /**
-   * getUsers - List all Users
+   * getUsers - List all users
    * 
-   * You can retrieve the details of all fire.com users on your acount.
+   * This endpoint will retrieve the details of all Fire users on your acount.You will need to enable PERM_BUSINESS_GET_USERS to use this endpoint.
    */
   'getUsers'(
     parameters?: Parameters<UnknownParamsObject> | null,
@@ -5467,9 +6545,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetUsers.Responses.$200>
   /**
-   * getUser - Get the details of a User
+   * getUser - Get the details of a user
    * 
-   * You can retrieve the details of a specific fire.com user
+   * This endpoint will retrieve the details of a specific Fire user. You will need to enable PERM_BUSINESS_GET_USER to use this endpoint.
    */
   'getUser'(
     parameters?: Parameters<Paths.GetUser.PathParameters> | null,
@@ -5477,9 +6555,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetUser.Responses.$200>
   /**
-   * getApiApplications - List all API Applications
+   * getApiApplications - List all API applications
    * 
-   * Returns a list of API applications created under your fire.com account
+   * This endpoint returns a list of API applications created under your Fire account. You will need to enable PERM_BUSINESS_GET_APPS to use this endpoint.
    */
   'getApiApplications'(
     parameters?: Parameters<UnknownParamsObject> | null,
@@ -5489,41 +6567,37 @@ export interface OperationMethods {
   /**
    * createApiApplication - Create an API Application
    * 
-   * Create a new API Application with specified permissions
+   * This endpoint will create a new API Application on your Fire account with your chosen specified permissions. Please note that if there is no batch approval permissions included, the approval fields must be set to null. You will need to enable PERM_BUSINESS_POST_APPS to use this endpoint.
    */
   'createApiApplication'(
     parameters?: Parameters<UnknownParamsObject> | null,
     data?: Paths.CreateApiApplication.RequestBody,
     config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.CreateApiApplication.Responses.$200>
+  ): OperationResponse<Paths.CreateApiApplication.Responses.$201>
   /**
-   * GetPermissions - List all permissions for an API application
+   * getPermissions - List all permissions for an API application
    * 
-   * Get all permissions allowed for a specific API application on your fire.com account
+   * This endpoint will return all permissions you selected for a specific API application on your Fire account. You will need to enable PERM_BUSINESS_GET_APP_PERMISSIONS to use this endpoint.
    */
-  'GetPermissions'(
+  'getPermissions'(
     parameters?: Parameters<Paths.GetPermissions.PathParameters> | null,
     data?: any,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetPermissions.Responses.$200>
   /**
-   * GetAllPermissions - List all permissions for API applications
+   * getAllPermissions - List all permissions for API applications
    * 
-   * Get all permissions available for any API application on your fire.com account
+   * This endpoint will list all permissions available for any API application you have created on your Fire account. You will need to enable PERM_BUSINESS_GET_APPS_PERMISSIONS to use this endpoint.
    */
-  'GetAllPermissions'(
+  'getAllPermissions'(
     parameters?: Parameters<UnknownParamsObject> | null,
     data?: any,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetAllPermissions.Responses.$200>
   /**
-   * getPayees - List Payees
+   * getPayees - List payees
    * 
-   * Returns all your payees. 
-   * 
-   * Ordered by payee name ascending. 
-   * 
-   * Can be paginated.
+   * This endpoint will return all payees on your account. You will need to enable PERM_BUSINESS_GET_FUNDING_SOURCES to use this endpoint.
    * 
    */
   'getPayees'(
@@ -5532,9 +6606,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetPayees.Responses.$200>
   /**
-   * getPayeeDetails - Get details of a Payee
+   * getPayeeDetails - Get details of a payee
    * 
-   * Retrieve the details of a specific payee
+   * This endpoint will retrieve the details of a specific payee. You will need to enable PERM_BUSINESS_GET_FUNDING_SOURCE to use this endpoint.
    * 
    */
   'getPayeeDetails'(
@@ -5543,9 +6617,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetPayeeDetails.Responses.$200>
   /**
-   * getPayeeTransactions - List transaction for a Payee Account
+   * getPayeeTransactions - List transaction for a payee account
    * 
-   * Retrieves the list of transactions and transaction information associated with a payee
+   * This endpoint retrieves the list of transactions and transaction information associated with a payee. You will need to enable PERM_BUSINESS_GET_FUNDING_SOURCE_TRANSACTIONS to use this endpoint.
    * 
    */
   'getPayeeTransactions'(
@@ -5554,10 +6628,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetPayeeTransactions.Responses.$200>
   /**
-   * getDirectDebitsForMandateUuid - List all Direct Debits
+   * getDirectDebitsForMandateUuid - List all direct debits
    * 
-   * Retrieve all direct debit payments associated with a direct debit mandate.
-   * The permision needed to access this endpoint is PERM_BUSINESS_GET_DIRECT_DEBITS
+   * This endpoint will retrieve all direct debit payments associated with a direct debit mandate. You will need to enable PERM_BUSINESS_GET_DIRECT_DEBITS to use this endpoint.
    * 
    */
   'getDirectDebitsForMandateUuid'(
@@ -5568,8 +6641,7 @@ export interface OperationMethods {
   /**
    * getDirectDebitByUuid - Get the details of a direct debit
    * 
-   * Retrieve all details of a single direct debit collection/payment, whether successful or not.
-   * The permision needed to access this endpoint is **PERM_BUSINESS_GET_DIRECT_DEBIT**
+   * This endpoint will retrieve all details of a single direct debit collection/payment, whether successful or not. You will need to enable PERM_BUSINESS_GET_DIRECT_DEBIT to use this endpoint.
    * 
    */
   'getDirectDebitByUuid'(
@@ -5580,8 +6652,7 @@ export interface OperationMethods {
   /**
    * rejectDirectDebit - Reject a direct debit
    * 
-   * This endpoint allows you to reject a direct debit payment where the status is still set to RECEIVED.
-   * Permission name PERM_BUSINESS_POST_DIRECT_DEBIT_REJECT
+   * This endpoint allows you to reject a direct debit payment where the status is still set to RECEIVED. You will need to enable PERM_BUSINESS_POST_DIRECT_DEBIT_REJECT to use this endpoint.
    * 
    */
   'rejectDirectDebit'(
@@ -5592,7 +6663,7 @@ export interface OperationMethods {
   /**
    * getDirectDebitMandates - List all direct debit mandates
    * 
-   * The permision needed to access this endpoint is PERM_BUSINESS_GET_MANDATES
+   * This endpoint will list all mandates on your Fire account. You will need to enable PERM_BUSINESS_GET_MANDATES to use this endpoint.
    * 
    */
   'getDirectDebitMandates'(
@@ -5603,8 +6674,7 @@ export interface OperationMethods {
   /**
    * getMandate - Get the details of a direct debit mandate
    * 
-   * Retrieve all details for a direct debit mandate.
-   * The permision needed to access this endpoint is PERM_BUSINESS_GET_MANDATE
+   * This endpoint will allow you to retrieve all details for a direct debit mandate. You will need to enable PERM_BUSINESS_GET_MANDATE to use this endpoint.
    * 
    */
   'getMandate'(
@@ -5615,20 +6685,18 @@ export interface OperationMethods {
   /**
    * updateMandateAlias - Update direct debit mandate alias
    * 
-   * Update Direct Debit Mandate Alias
-   * The permision needed to access this endpoint is PERM_BUSINESS_PUT_MANDATE
+   * This endpoint allows you to update Direct Debit Mandate Alias. You will need to enable PERM_BUSINESS_PUT_MANDATE to use this endpoint.
    * 
    */
   'updateMandateAlias'(
     parameters?: Parameters<Paths.UpdateMandateAlias.PathParameters> | null,
-    data?: any,
+    data?: Paths.UpdateMandateAlias.RequestBody,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.UpdateMandateAlias.Responses.$204>
   /**
    * cancelMandateByUuid - Cancel a direct debit mandate
    * 
-   * This endpoint allows you to cancel a direct debit mandate.
-   * The permision needed to access this endpoint is PERM_BUSINESS_POST_MANDATE_CANCEL
+   * This endpoint allows you to cancel a direct debit mandate. You will need to enable PERM_BUSINESS_POST_MANDATE_CANCEL to use this endpoint.
    * 
    */
   'cancelMandateByUuid'(
@@ -5639,8 +6707,7 @@ export interface OperationMethods {
   /**
    * activateMandate - Activate a direct debit mandate
    * 
-   * This endpoint can only be used to activate a direct debit mandate when it is in the status REJECT_REQUESTED (even if the account has direct debits disabled). This action will also enable the account for direct debits if it was previously set to be disabled.
-   * The permision needed to access this endpoint is PERM_BUSINESS_POST_MANDATE_ACTIVATE
+   * This endpoint can only be used to activate a direct debit mandate when it is in the status REJECT_REQUESTED (even if the account has direct debits disabled). This action will also enable the account for direct debits if it was previously set to be disabled. You will need to enable PERM_BUSINESS_POST_MANDATE_ACTIVATE to use this endpoint.
    * 
    */
   'activateMandate'(
@@ -5649,9 +6716,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.ActivateMandate.Responses.$204>
   /**
-   * getBatches - List all Batches
+   * getBatches - List all batches
    * 
-   * Returns the list of batch with the specified types and statuses.
+   * This endpoint will return a list of batches with the specified types and statuses. You will need to enable PERM_BUSINESS_GET_BATCHES to use this endpoint.
    * 
    */
   'getBatches'(
@@ -5660,9 +6727,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetBatches.Responses.$200>
   /**
-   * createBatchPayment - Create a new Batch
+   * createBatchPayment - Create a new batch
    * 
-   * Opens a new batch container to hold specific transaction types in a certain currency.
+   * This endpoint will create a new batch. This opens a new batch container to hold specific transaction types in a certain currency. You will need to enable PERM_BUSINESS_POST_BATCHES to use this endpoint.
    * 
    */
   'createBatchPayment'(
@@ -5671,9 +6738,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.CreateBatchPayment.Responses.$200>
   /**
-   * getItemsBatchInternalTrasnfer - List items for an Internal Transfer Batch
+   * getItemsBatchInternalTrasnfer - List items for an internal transfer batch
    * 
-   * Returns a paginated list of items in the specified batch.
+   * This endpoint returns returns a paginated list of items in the specified batch. You will need to enable PERM_BUSINESS_GET_BATCH_INTERNALTRANSFERS to use this endpoint.
    */
   'getItemsBatchInternalTrasnfer'(
     parameters?: Parameters<Paths.GetItemsBatchInternalTrasnfer.QueryParameters & Paths.GetItemsBatchInternalTrasnfer.PathParameters> | null,
@@ -5683,7 +6750,7 @@ export interface OperationMethods {
   /**
    * addInternalTransferBatchPayment - Add an internal transfer to a Batch
    * 
-   * Simply specify the source account, destination account, amount and a reference.
+   * This endpoint will add an internal transfer payment to an existing batch. Simply specify the source account, destination account, amount and a reference. You will need to enable PERM_BUSINESS_POST_BATCH_INTERNALTRANSFERS to use this endpoint.
    */
   'addInternalTransferBatchPayment'(
     parameters?: Parameters<Paths.AddInternalTransferBatchPayment.PathParameters> | null,
@@ -5691,9 +6758,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.AddInternalTransferBatchPayment.Responses.$200>
   /**
-   * getItemsBatchBankTransfer - List items for a Bank Transfer Batch
+   * getItemsBatchBankTransfer - List items for a bank transfer batch
    * 
-   * Returns a paginated list of items in the specified batch.
+   * This endpoint returns a paginated list of items in the specified batch. You will need to enable PERM_BUSINESS_GET_BATCH_BANKTRANSFERS to use this endpoint.
    */
   'getItemsBatchBankTransfer'(
     parameters?: Parameters<Paths.GetItemsBatchBankTransfer.QueryParameters & Paths.GetItemsBatchBankTransfer.PathParameters> | null,
@@ -5701,13 +6768,14 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetItemsBatchBankTransfer.Responses.$200>
   /**
-   * addBankTransferBatchPayment - Add a Bank Transfer to a Batch
+   * addBankTransferBatchPayment - Add a bank transfer to a batch.
    * 
-   * There are two ways to process bank transfers - by Payee ID (**Mode 1**) or by Payee Account Details (**Mode 2**).
+   * This endpoint will add a new bank transfer payment to a batch. There are two ways to process bank transfers - by Payee ID (**Mode 1**) or by Payee Account Details (**Mode 2**).
    * 
    * **Mode 1:** Use the payee IDs of existing approved payees set up against your account. These batches can be approved in the normal manner.
    * 
    * **Mode 2:** Use the account details of the payee. In the event that these details correspond to an existing approved payee, the batch can be approved as normal. If the account details are new, a batch of New Payees will automatically be created. This batch will need to be approved before the Payment batch can be approved. These payees will then exist as approved payees for future batches.
+   * You will need to enable PERM_BUSINESS_POST_BATCH_BANKTRANSFERS to use this endpoint.
    * 
    */
   'addBankTransferBatchPayment'(
@@ -5716,9 +6784,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.AddBankTransferBatchPayment.Responses.$200>
   /**
-   * getItemsBatchInternationalTransfer - List items for an International Transfer Batch
+   * getItemsBatchInternationalTransfer - List items for an international transfer batch
    * 
-   * Returns a paginated list of items in the specified batch.
+   * Returns a paginated list of items in the specified batch. You will need to enable PERM_BUSINESS_GET_BATCH_INTERNATIONALTRANSFERS to use this endpoint.
    */
   'getItemsBatchInternationalTransfer'(
     parameters?: Parameters<Paths.GetItemsBatchInternationalTransfer.QueryParameters & Paths.GetItemsBatchInternationalTransfer.PathParameters> | null,
@@ -5728,7 +6796,7 @@ export interface OperationMethods {
   /**
    * addInternationalTransferBatchPayment - Add an international transfer to a Batch
    * 
-   * International transfers must be added to a batch using the Payee ID (**Mode 1**). Payees must be set up using the web application.
+   * This endpoint allows you to add an international transfer to a batch. International transfers must be added to a batch using the Payee ID (**Mode 1**). Payees must be set up using the web application.
    * 
    * **Mode 1:** Use the payee IDs of existing approved payees set up against your account. These batches can be approved in the normal manner.
    * 
@@ -5739,9 +6807,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.AddInternationalTransferBatchPayment.Responses.$200>
   /**
-   * deleteInternalTransferBatchPayment - Remove an internal transfer from a Batch
+   * deleteInternalTransferBatchPayment - Remove an internal transfer from a batch
    * 
-   * Removes a Payment from the Batch (Internal Transfer). You can only remove payments before the batch is submitted for approval (while it is in the OPEN state).
+   * This endpoint will remove a Payment from the Batch (Internal Transfer). You can only remove payments before the batch is submitted for approval (while it is in the OPEN state). You will need to enable PERM_BUSINESS_DELETE_BATCH_INTERNALTRANSFERS to use this endpoint.
    */
   'deleteInternalTransferBatchPayment'(
     parameters?: Parameters<Paths.DeleteInternalTransferBatchPayment.PathParameters> | null,
@@ -5749,9 +6817,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.DeleteInternalTransferBatchPayment.Responses.$200>
   /**
-   * deleteBankTransferBatchPayment - Remove a Bank Transfer from a Batch
+   * deleteBankTransferBatchPayment - Remove a bank transfer from a batch.
    * 
-   * Removes a Payment from the Batch (Bank Transfers). You can only remove payments before the batch is submitted for approval (while it is in the OPEN state).
+   * This endpoint will remove a payment from the Batch (Bank Transfers). You can only remove payments before the batch is submitted for approval (while it is in the OPEN state). You will need to enable PERM_BUSINESS_DELETE_BATCH_BANKTRANSFERS to use this endpoint.
    */
   'deleteBankTransferBatchPayment'(
     parameters?: Parameters<Paths.DeleteBankTransferBatchPayment.PathParameters> | null,
@@ -5759,9 +6827,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.DeleteBankTransferBatchPayment.Responses.$200>
   /**
-   * deleteInternationalTransferBatchPayment - Remove an international transfer from a Batch
+   * deleteInternationalTransferBatchPayment - Remove an international transfer from a batch
    * 
-   * Removes a Payment from the Batch (International Transfers). You can only remove payments before the batch is submitted for approval (while it is in the OPEN state).
+   * This endpoint will remove a payment from an existing Batch (International Transfers). You can only remove payments before the batch is submitted for approval (while it is in the OPEN state). You will need to enable PERM_BUSINESS_DELETE_BATCH_INTERNATIONALTRANSFERS to use this endpoint.
    */
   'deleteInternationalTransferBatchPayment'(
     parameters?: Parameters<Paths.DeleteInternationalTransferBatchPayment.PathParameters> | null,
@@ -5769,9 +6837,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.DeleteInternationalTransferBatchPayment.Responses.$200>
   /**
-   * getDetailsSingleBatch - Get the details of a Batch
+   * getDetailsSingleBatch - Get the details of a batch
    * 
-   * Returns the details of the batch specified in the API endpoint - {batchUuid}.
+   * This endpoint will return the details of the batch specified in the API endpoint - {batchUuid}. You will need to enable PERM_BUSINESS_GET_BATCH to use this endpoint.
    */
   'getDetailsSingleBatch'(
     parameters?: Parameters<Paths.GetDetailsSingleBatch.PathParameters> | null,
@@ -5779,11 +6847,11 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetDetailsSingleBatch.Responses.$200>
   /**
-   * submitBatch - Submit a Batch
+   * submitBatch - Submit a batch
    * 
-   * Submits the Batch (for approval in the case of a **BANK_TRANSFER** or **INTERNATIONAL_TRANSFER**). If this is an **INTERNAL_TRANSFER** batch, the transfers are immediately queued for processing. If this is a **BANK_TRANSFER** or **INTERNATIONAL_TRANSFER** batch, this will trigger requests for approval to the firework mobile apps of authorised users. Once those users approve the batch, it is queued for processing.
+   * This endpoint allows you to submit a Batch (for approval in the case of a **BANK_TRANSFER** or **INTERNATIONAL_TRANSFER**). If this is an **INTERNAL_TRANSFER** batch, the transfers are immediately queued for processing. If this is a **BANK_TRANSFER** or **INTERNATIONAL_TRANSFER** batch, this will trigger requests for approval to the firework mobile apps of authorised users. Once those users approve the batch, it is queued for processing.
    * 
-   * You can only submit a batch while it is in the OPEN state.
+   * You can only submit a batch while it is in the OPEN state. You will need to enable PERM_BUSINESS_PUT_BATCH to use this endpoint.
    * 
    */
   'submitBatch'(
@@ -5794,7 +6862,7 @@ export interface OperationMethods {
   /**
    * cancelBatchPayment - Cancel a batch
    * 
-   * Cancels the Batch. You can only cancel a batch before it is submitted for approval (while it is in the OPEN state).
+   * This endpoint will cancel a Batch from being processed. You can only cancel a batch before it is submitted for approval (while it is in the OPEN state). You will need to enable PERM_BUSINESS_DELETE_BATCH to use this endpoint.
    */
   'cancelBatchPayment'(
     parameters?: Parameters<Paths.CancelBatchPayment.PathParameters> | null,
@@ -5802,9 +6870,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.CancelBatchPayment.Responses.$200>
   /**
-   * getListofApproversForBatch - List Approvals for a Batch
+   * getListofApproversForBatch - List approvals for a batch.
    * 
-   * Returns a list of approvers for this batch.
+   * This endpoint will return a list of the approvers for the selected batch. You will need to enable PERM_BUSINESS_GET_BATCH_APPROVALS to use this endpoint.
    */
   'getListofApproversForBatch'(
     parameters?: Parameters<Paths.GetListofApproversForBatch.PathParameters> | null,
@@ -5812,9 +6880,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetListofApproversForBatch.Responses.$200>
   /**
-   * getUserAddress - Get the address of a User
+   * getUserAddress - Get the address of a user
    * 
-   * You can retrieve the address of a specific fire.com user
+   * This endpoint will return the address of a specific Fire user. You will need to enable PERM_BUSINESS_GET_USER_ADDRESS to use this endpoint.
    */
   'getUserAddress'(
     parameters?: Parameters<Paths.GetUserAddress.PathParameters> | null,
@@ -5822,26 +6890,26 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetUserAddress.Responses.$200>
   /**
-   * getServices - Get Service Fees and Info
+   * getServiceFees - Get service Fees and info
    * 
-   * Returns an array of the services and fees associated with them
+   * This endpoint returns an array of the services and fees associated with them. You will need to enable PERM_BUSINESS_GET_SERVICES to use this endpoint.
    */
-  'getServices'(
+  'getServiceFees'(
     parameters?: Parameters<UnknownParamsObject> | null,
     data?: any,
     config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetServices.Responses.$200>
+  ): OperationResponse<Paths.GetServiceFees.Responses.$200>
   /**
-   * updatePaymentRequests - Update the status of a payment request
+   * updatePaymentRequest - Update the status of a payment request
    * 
-   * Update the status of a payment request. The payment request should be active or removed.
+   * This endpoint will update the status of a payment request. The payment request should be active or removed. You will need to enable PERM_BUSINESS_PUT_PAYMENT_REQUEST_STATUS to use this endpoint.
    * 
    */
-  'updatePaymentRequests'(
-    parameters?: Parameters<Paths.UpdatePaymentRequests.PathParameters> | null,
+  'updatePaymentRequest'(
+    parameters?: Parameters<Paths.UpdatePaymentRequest.PathParameters> | null,
     data?: any,
     config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.UpdatePaymentRequests.Responses.$204>
+  ): OperationResponse<Paths.UpdatePaymentRequest.Responses.$204>
 }
 
 export interface PathsDictionary {
@@ -5849,19 +6917,19 @@ export interface PathsDictionary {
     /**
      * authenticate - Authenticate with the API.
      * 
-     * Access to the API is by Bearer Access Tokens. These are valid for 15 minutes. You can have multiple Access Tokens active at the same time if needed. See the [Guide to Authentication](/docs/authentication) for full details.
+     * This endpoint is needed to generate your access token. Access to the API is by Bearer Access Tokens. These are valid for 15 minutes. You can have multiple Access Tokens active at the same time if needed. See the [Guide to Authentication](/docs/authentication) for full details.
      */
     'post'(
       parameters?: Parameters<UnknownParamsObject> | null,
       data?: Paths.Authenticate.RequestBody,
       config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.Authenticate.Responses.$200>
+    ): OperationResponse<Paths.Authenticate.Responses.$201>
   }
   ['/v1/accounts']: {
     /**
-     * getAccounts - List Accounts
+     * getAccounts - List accounts
      * 
-     * Returns all your fire.com Accounts. Ordered by Alias ascending. Can be paginated.
+     * This endpoint returns all the accounts on your Fire profile. Ordered by Alias ascending. Can be paginated. You will need to enable PERM_BUSINESS_GET_ACCOUNTS to use this endpoint.
      */
     'get'(
       parameters?: Parameters<UnknownParamsObject> | null,
@@ -5869,9 +6937,9 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetAccounts.Responses.$200>
     /**
-     * addAccount - Create a new Fire Account
+     * addAccount - Create a new Fire Account.
      * 
-     * Creates a new fire.com account.
+     * This endpoint will create a new Fire account on your profile. You will need to enable PERM_BUSINESS_POST_ACCOUNTS to use this endpoint.
      * 
      * **Please note there is a charge associated with creating a new account.**
      * 
@@ -5882,11 +6950,11 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.AddAccount.Responses.$201>
   }
-  ['/v2/activites']: {
+  ['/v2/activities']: {
     /**
-     * getActivities - Get Account Activity
+     * getActivities - Get activity
      * 
-     * Retrieve the details of activity on your fire.com Account
+     * This endpoint will retrieve the details of all activity on your Fire Accounts. You will need to enable PERM_BUSINESS_GET_ACTIVITIES to use this endpoint.
      */
     'get'(
       parameters?: Parameters<UnknownParamsObject> | null,
@@ -5896,9 +6964,9 @@ export interface PathsDictionary {
   }
   ['/v1/accounts/{ican}']: {
     /**
-     * getAccountById - Get details of an Account
+     * getAccountById - Get details of an account
      * 
-     * You can retrieve the details of a fire.com Account by its `ican`.
+     * This endpoint will return an array of information about the account. You can retrieve the details of a Fire  Account by its `ican`. You will need to enable PERM_BUSINESS_GET_ACCOUNT to use this endpoint.
      */
     'get'(
       parameters?: Parameters<Paths.GetAccountById.PathParameters> | null,
@@ -5906,23 +6974,11 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetAccountById.Responses.$200>
   }
-  ['/v1/accounts/{ican}/transactions']: {
-    /**
-     * getTransactionsByAccountIdv1 - List transactions on an account (v1)
-     * 
-     * Retrieve a list of transactions against an account. Recommended to use the v3 endpoint instead.
-     */
-    'get'(
-      parameters?: Parameters<Paths.GetTransactionsByAccountIdv1.QueryParameters & Paths.GetTransactionsByAccountIdv1.PathParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetTransactionsByAccountIdv1.Responses.$200>
-  }
   ['/v3/accounts/{ican}/transactions']: {
     /**
-     * getTransactionsByAccountIdv3 - List transactions for an account (v3)
+     * getTransactionsByAccountIdv3 - List transactions for an account
      * 
-     * Retrieve a list of transactions against an account. Initially, use the optional `limit`, `dateRangeFrom` and `dateRangeTo` query params to limit your query, then use the embedded `next` or `prev` links in the response to get newer or older pages.
+     * This endpoint will retrieve a list of transactions against an account. Initially, use the optional `limit`, `dateRangeFrom` and `dateRangeTo` query params to limit your query, then use the embedded `next` or `prev` links in the response to get newer or older pages. You will need to enable PERM_BUSINESS_GET_ACCOUNT_TRANSACTIONS to use this endpoint.
      * 
      */
     'get'(
@@ -5931,30 +6987,11 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetTransactionsByAccountIdv3.Responses.$200>
   }
-  ['/v1/accounts/{ican}/transactions/filter']: {
-    /**
-     * getTransactionsByAccountIdFiltered - Filter transactions on an account (v1)
-     * 
-     * Retrieve a filtered list of transactions against an account. Recommended to use the v3 endpoint instead.
-     * * `dateRangeFrom` - A millisecond epoch time specifying the date range start date.
-     * * `dateRangeTo` - A millisecond epoch time specifying the date range end date.
-     * * `searchKeyword` - Search term to filter by from the reference field (`myRef`).
-     * * `transactionTypes` - One or more of the transaction types above. This field can be repeated multiple times to allow for multiple transaction types.
-     * * `offset` - The page offset. Defaults to 0. This is the record number that the returned list will start at. E.g. offset = 40 and limit = 20 will return records 40 to 59.
-     * * `limit` - the number of items to return. 
-     * 
-     */
-    'get'(
-      parameters?: Parameters<Paths.GetTransactionsByAccountIdFiltered.QueryParameters & Paths.GetTransactionsByAccountIdFiltered.PathParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetTransactionsByAccountIdFiltered.Responses.$200>
-  }
   ['/v1/cards']: {
     /**
-     * getListofCards - List Debit Cards
+     * getListofCards - List debit cards
      * 
-     * Returns a list of cards related to your fire.com account.
+     * This endpoint returns a list of cards related to your Fire account. You will need to enable PERM_BUSINESS_GET_CARDS to use this endpoint.
      */
     'get'(
       parameters?: Parameters<UnknownParamsObject> | null,
@@ -5964,7 +7001,7 @@ export interface PathsDictionary {
     /**
      * createNewCard - Create a new Fire debit card
      * 
-     * You can create multiple debit cards which can be linked to your fire.com accounts.
+     * This endpoint allows you to create a debit card to be linked to your Fire account. You can create multiple debit cards which can be linked to your Fire accounts. You will need to enable PERM_BUSINESS_POST_CARDS to use this endpoint.
      */
     'post'(
       parameters?: Parameters<UnknownParamsObject> | null,
@@ -5972,11 +7009,11 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.CreateNewCard.Responses.$200>
   }
-  ['/v1/cards/{cardId}/transactions']: {
+  ['/v1/me/cards/{cardId}/transactions']: {
     /**
-     * getListofCardTransactions - Get a list of Debit Card Transactions
+     * getListofCardTransactions - Get a list of debit card transactions
      * 
-     * Returns a list of cards transactions related to your fire.com card.
+     * This endpoint returns a list of cards transactions related to your Fire card. You will need to enable PERM_BUSINESS_GET_MY_CARD_TRANSACTIONS to use this endpoint.
      */
     'get'(
       parameters?: Parameters<Paths.GetListofCardTransactions.QueryParameters & Paths.GetListofCardTransactions.PathParameters> | null,
@@ -5984,11 +7021,11 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetListofCardTransactions.Responses.$200>
   }
-  ['/v1/cards/{cardId}/block']: {
+  ['/v1/me/cards/{cardId}/block']: {
     /**
-     * blockCard - Block a Fire Debit card
+     * blockCard - Block a Fire debit card
      * 
-     * Updates status of an existing card to block which prevents any transactions being carried out with that card.
+     * This endpoint allows you to block a card on your Fire account. This updates the status of an existing card to block which prevents any transactions being carried out with that card. You will need to enable PERM_BUSINESS_POST_MY_CARD_BLOCK to use this endpoint.
      */
     'post'(
       parameters?: Parameters<Paths.BlockCard.PathParameters> | null,
@@ -5996,11 +7033,11 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.BlockCard.Responses.$204>
   }
-  ['/v1/cards/{cardId}/unblock']: {
+  ['/v1/me/cards/{cardId}/unblock']: {
     /**
      * unblockCard - Unblock a Fire debit card
      * 
-     * Updates status of an existing card to unblock which means that transactions can be carried out with that card.
+     * This endpoint updates status of an existing card to unblock which means that transactions can be carried out with that card. You will need to enable PERM_BUSINESS_POST_MY_CARD_UNBLOCK to use this endpoint.
      */
     'post'(
       parameters?: Parameters<Paths.UnblockCard.PathParameters> | null,
@@ -6010,22 +7047,22 @@ export interface PathsDictionary {
   }
   ['/v1/paymentrequests']: {
     /**
-     * newPaymentRequest - Create a Payment request
+     * newPaymentRequest - Create a payment request
      * 
-     * This request creates a new Open Banking Payment request. A code is returned that can be shared to your customers as a URL by any channel you wish. See our [Guide to Fire Open Payments](/docs/fire-open-payments) for more details. You will need to enable the `PERM_BUSINESS_POST_PAYMENT_REQUEST` permission to use this endpoint.
+     * This endpoint creates a new Open Banking Payment request. A code is returned that can be shared to your customers as a URL by any channel you wish. See our [Guide to Fire Open Payments](/docs/fire-open-payments) for more details. You will need to enable PERM_BUSINESS_POST_PAYMENT_REQUEST to use this endpoint. 
      * 
      */
     'post'(
       parameters?: Parameters<UnknownParamsObject> | null,
       data?: Paths.NewPaymentRequest.RequestBody,
       config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.NewPaymentRequest.Responses.$200>
+    ): OperationResponse<Paths.NewPaymentRequest.Responses.$201>
   }
   ['/v1/paymentrequests/{paymentRequestCode}']: {
     /**
-     * getPaymentRequestDetails - Get Payment Details
+     * getPaymentRequestDetails - Get payment request details
      * 
-     * Retrieve the details of an Open Banking Payment request
+     * This endpoint will retrieve the details of an Open Banking Payment requestYou will need to enable PERM_BUSINESS_GET_PAYMENT_REQUEST to use this endpoint.
      * 
      */
     'get'(
@@ -6034,24 +7071,11 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetPaymentRequestDetails.Responses.$200>
   }
-  ['/v1/paymentrequests/{paymentRequestCode}/payments']: {
-    /**
-     * getPaymentRequestPayments - Get list of all Payment Attempts related to a Payment Request
-     * 
-     * Retrieve the list of payments attempted against an Open Banking Payment request
-     * 
-     */
-    'get'(
-      parameters?: Parameters<Paths.GetPaymentRequestPayments.PathParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetPaymentRequestPayments.Responses.$200>
-  }
   ['/v2/paymentrequests/{paymentRequestCode}/payments']: {
     /**
-     * getPaymentRequestPaymentsv2 - Get list of all Payment Attempts related to a Payment Request
+     * getPaymentRequestPaymentsv2 - Get list of all payment attempts related to a payment request
      * 
-     * Retrieve the list of payments attempted against an Open Banking Payment request
+     * This endpoint will retrieve the list of payments attempted against an Open Banking Payment request. You will need to enable PERM_BUSINESS_GET_PAYMENT_REQUEST_PAYMENTS to use this endpoint.
      * 
      */
     'get'(
@@ -6062,9 +7086,9 @@ export interface PathsDictionary {
   }
   ['/v2/paymentrequests/{paymentRequestCode}/reports']: {
     /**
-     * getPaymentRequestReportV2 - Get a report from a Payment Request
+     * getPaymentRequestReportV2 - Get a report from a payment request
      * 
-     * Retrieve a report for an Open Banking Payment request
+     * This endpoint will retrieve a report for an Open Banking Payment request. You will need to enable PERM_BUSINESS_GET_PAYMENT_REQUEST_REPORTS to use this endpoint.
      * 
      */
     'get'(
@@ -6075,9 +7099,9 @@ export interface PathsDictionary {
   }
   ['/v2/paymentrequests/sent']: {
     /**
-     * getPaymentRequestsSentV2 - Get a list of Payment Request transactions
+     * getPaymentRequestsSentV2 - Get a list of payment request transactions
      * 
-     * Retrieve the list of open banking payment requests made on your account
+     * This endpoint will retrieve the list of open banking payment requests made on your account. You will need to enable PERM_BUSINESS_GET_PAYMENT_REQUEST_TRANSACTIONS to use this endpoint.
      * 
      */
     'get'(
@@ -6088,33 +7112,33 @@ export interface PathsDictionary {
   }
   ['/v2/paymentrequests/{paymentRequestCode}/public']: {
     /**
-     * GetPublicPaymentRequestV2 - List details of a public payment request
+     * getPublicPaymentRequest - List details of a public payment request
      * 
-     * Returns an object of payment request information
+     * This endpoint returns an object of payment request information. You will need to enable PERM_BUSINESS_GET_PUBLIC_PAYMENT_REQUEST to use this endpoint.
      */
     'get'(
-      parameters?: Parameters<Paths.GetPublicPaymentRequestV2.PathParameters> | null,
+      parameters?: Parameters<Paths.GetPublicPaymentRequest.PathParameters> | null,
       data?: any,
       config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetPublicPaymentRequestV2.Responses.$200>
+    ): OperationResponse<Paths.GetPublicPaymentRequest.Responses.$200>
   }
-  ['/v2/rates/{fromCurrency}/{toCurrency}']: {
+  ['/v2/fx/rate']: {
     /**
-     * GetFXRates - Get FX Rates
+     * getFXRates - Get FX rates
      * 
-     * Return exchange rate between two currencies
+     * This endpoint returns the exchange rate between two currencies. You will need to enable PERM_BUSINESS_GET_FX_RATE to use this endpoint.
      */
     'get'(
-      parameters?: Parameters<Paths.GetFXRates.PathParameters> | null,
+      parameters?: Parameters<Paths.GetFXRates.QueryParameters> | null,
       data?: any,
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetFXRates.Responses.$200>
   }
   ['/v2/limits']: {
     /**
-     * GetLimits - List all Limits
+     * getLimits - List all limits
      * 
-     * Returns an array of limit information
+     * This endpoint returns an array of limit information. You will need to enable PERM_BUSINESS_GET_LIMITS to use this endpoint.
      */
     'get'(
       parameters?: Parameters<UnknownParamsObject> | null,
@@ -6124,21 +7148,21 @@ export interface PathsDictionary {
   }
   ['/v2/accounts/{ican}']: {
     /**
-     * changeAccountConfig - Update Account Configuration
+     * updateAccountConfig - Update account configuration
      * 
-     * Changes the name associated with an account
+     * This endpoint changes the name associated with an account. You will need to enable PERM_BUSINESS_PUT_ACCOUNT to use this endpoint.
      */
     'put'(
-      parameters?: Parameters<Paths.ChangeAccountConfig.PathParameters> | null,
-      data?: Paths.ChangeAccountConfig.RequestBody,
+      parameters?: Parameters<Paths.UpdateAccountConfig.PathParameters> | null,
+      data?: Paths.UpdateAccountConfig.RequestBody,
       config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.ChangeAccountConfig.Responses.$204>
+    ): OperationResponse<Paths.UpdateAccountConfig.Responses.$204>
   }
   ['/v2/webhooks/{webhookId}/events/{event}/test']: {
     /**
-     * SendTestWebhook - Send test webhooks
+     * sendTestWebhook - Send test webhooks
      * 
-     * Sends a test webhook response for a selected event to the chosen URL
+     * This endpoint sends a test webhook response for a selected event to the chosen URL. You will need to enable PERM_BUSINESS_GET_WEBHOOK_EVENT_TEST to use this endpoint.
      */
     'get'(
       parameters?: Parameters<Paths.SendTestWebhook.PathParameters> | null,
@@ -6146,11 +7170,23 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.SendTestWebhook.Responses.$200>
   }
+  ['/v2/webhooks']: {
+    /**
+     * getWebhookEvents - List all webhooks
+     * 
+     * This endpoint lists all webhooks on your Fire account. You will need to enable PERM_BUSINESS_GET_WEBHOOKS to use this endpoint.
+     */
+    'get'(
+      parameters?: Parameters<UnknownParamsObject> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetWebhookEvents.Responses.$200>
+  }
   ['/v2/batches/{batchUuid}/newpayees']: {
     /**
      * getNewPayeeBatch - List new payees in a batch
      * 
-     * Retrieve a list of details of batch items with new payees
+     * This endpoint will retrieve a list of details of batch items with new payees. You will need to enable PERM_BUSINESS_GET_BATCH_NEWPAYEES to use this endpoint.
      * 
      */
     'get'(
@@ -6159,38 +7195,11 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetNewPayeeBatch.Responses.$200>
   }
-  ['/v1/payments/{paymentUuid}']: {
-    /**
-     * getPaymentDetails - Get Payment Details
-     * 
-     * Returns the details of a specific payment.
-     * 
-     * As the customer goes through the process of making the payment the status of the payment will change.
-     * 
-     * * `AWAITING_AUTHORISATION` -This is the initial status of all your payments.
-     * * `AWAITING_MULTI_AUTHORISATION` - Some business accounts such as charities require dual authorisation.
-     * * `NOT_AUTHORISED` - Either your customer clicked on cancel or the payment was rejected by their ASPSP / bank.
-     * * `PENDING` - This is the status that your payment is set to after the customer has authorised the payment with their ASPSP / bank but the bank may want to carry out another check before funding the transaction.
-     * * `AUTHORISED` - This is the status that your payment is set to after the customer has authorised the payment with their ASPSP / bank.
-     * * `PAID` - Funds were received into your fire.com GBP or EUR account from your customer’s ASPSP / bank.
-     * 
-     * 
-     * You will need to enable the `PERM_BUSINESS_GET_PAYMENT` permission to use this endpoint.
-     * 
-     */
-    'get'(
-      parameters?: Parameters<Paths.GetPaymentDetails.PathParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetPaymentDetails.Responses.$200>
-  }
   ['/v2/payments/{paymentUuid}']: {
     /**
-     * getPaymentDetailsv2 - Get Payment Details (v2)
+     * getPaymentDetailsv2 - Get payment details
      * 
-     * Returns the details of a specific payment.
-     * 
-     * You will need to enable the `PERM_BUSINESS_GET_PAYMENT` permission to use this endpoint.
+     * This endpoint will return the details of a specific open banking payment. You will need to enable PERM_BUSINESS_GET_PAYMENT to use this endpoint.
      * 
      * As your customer goes through the payment submission journey, the payment status will change. The endpoint will return one of the following statuses:
      * 
@@ -6216,7 +7225,7 @@ export interface PathsDictionary {
     /**
      * getListOfAspsps - Get list of ASPSPs / Banks
      * 
-     * Returns all ASPSPs (Account Servicing Payment Service Provider) / banks. The list can be filtered by currency. You will need to enable the `PERM_BUSINESS_GET_ASPSPS` permission to use this endpoint.
+     * This endpoint will return all ASPSPs (Account Servicing Payment Service Provider) / banks available to you for open banking payments. The list can be filtered by currency.You will need to enable PERM_BUSINESS_GET_ASPSPS to use this endpoint.
      * ***This endpoint is only required if you intend to host the “Select ASPSP / bank” page yourself.***
      * 
      */
@@ -6228,9 +7237,9 @@ export interface PathsDictionary {
   }
   ['/v1/users']: {
     /**
-     * getUsers - List all Users
+     * getUsers - List all users
      * 
-     * You can retrieve the details of all fire.com users on your acount.
+     * This endpoint will retrieve the details of all Fire users on your acount.You will need to enable PERM_BUSINESS_GET_USERS to use this endpoint.
      */
     'get'(
       parameters?: Parameters<UnknownParamsObject> | null,
@@ -6238,11 +7247,11 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetUsers.Responses.$200>
   }
-  ['/v1/user/{userId}']: {
+  ['/v1/users/{userId}']: {
     /**
-     * getUser - Get the details of a User
+     * getUser - Get the details of a user
      * 
-     * You can retrieve the details of a specific fire.com user
+     * This endpoint will retrieve the details of a specific Fire user. You will need to enable PERM_BUSINESS_GET_USER to use this endpoint.
      */
     'get'(
       parameters?: Parameters<Paths.GetUser.PathParameters> | null,
@@ -6252,9 +7261,9 @@ export interface PathsDictionary {
   }
   ['/v1/apps']: {
     /**
-     * getApiApplications - List all API Applications
+     * getApiApplications - List all API applications
      * 
-     * Returns a list of API applications created under your fire.com account
+     * This endpoint returns a list of API applications created under your Fire account. You will need to enable PERM_BUSINESS_GET_APPS to use this endpoint.
      */
     'get'(
       parameters?: Parameters<UnknownParamsObject> | null,
@@ -6264,19 +7273,19 @@ export interface PathsDictionary {
     /**
      * createApiApplication - Create an API Application
      * 
-     * Create a new API Application with specified permissions
+     * This endpoint will create a new API Application on your Fire account with your chosen specified permissions. Please note that if there is no batch approval permissions included, the approval fields must be set to null. You will need to enable PERM_BUSINESS_POST_APPS to use this endpoint.
      */
     'post'(
       parameters?: Parameters<UnknownParamsObject> | null,
       data?: Paths.CreateApiApplication.RequestBody,
       config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.CreateApiApplication.Responses.$200>
+    ): OperationResponse<Paths.CreateApiApplication.Responses.$201>
   }
   ['/v1/apps/{applicationId}/permissions']: {
     /**
-     * GetPermissions - List all permissions for an API application
+     * getPermissions - List all permissions for an API application
      * 
-     * Get all permissions allowed for a specific API application on your fire.com account
+     * This endpoint will return all permissions you selected for a specific API application on your Fire account. You will need to enable PERM_BUSINESS_GET_APP_PERMISSIONS to use this endpoint.
      */
     'get'(
       parameters?: Parameters<Paths.GetPermissions.PathParameters> | null,
@@ -6286,9 +7295,9 @@ export interface PathsDictionary {
   }
   ['/v1/apps/permissions']: {
     /**
-     * GetAllPermissions - List all permissions for API applications
+     * getAllPermissions - List all permissions for API applications
      * 
-     * Get all permissions available for any API application on your fire.com account
+     * This endpoint will list all permissions available for any API application you have created on your Fire account. You will need to enable PERM_BUSINESS_GET_APPS_PERMISSIONS to use this endpoint.
      */
     'get'(
       parameters?: Parameters<UnknownParamsObject> | null,
@@ -6298,13 +7307,9 @@ export interface PathsDictionary {
   }
   ['/v1/payees']: {
     /**
-     * getPayees - List Payees
+     * getPayees - List payees
      * 
-     * Returns all your payees. 
-     * 
-     * Ordered by payee name ascending. 
-     * 
-     * Can be paginated.
+     * This endpoint will return all payees on your account. You will need to enable PERM_BUSINESS_GET_FUNDING_SOURCES to use this endpoint.
      * 
      */
     'get'(
@@ -6315,9 +7320,9 @@ export interface PathsDictionary {
   }
   ['/v1/payees/{payeeId}']: {
     /**
-     * getPayeeDetails - Get details of a Payee
+     * getPayeeDetails - Get details of a payee
      * 
-     * Retrieve the details of a specific payee
+     * This endpoint will retrieve the details of a specific payee. You will need to enable PERM_BUSINESS_GET_FUNDING_SOURCE to use this endpoint.
      * 
      */
     'get'(
@@ -6328,9 +7333,9 @@ export interface PathsDictionary {
   }
   ['/v1/payees/{payeeId}/transactions']: {
     /**
-     * getPayeeTransactions - List transaction for a Payee Account
+     * getPayeeTransactions - List transaction for a payee account
      * 
-     * Retrieves the list of transactions and transaction information associated with a payee
+     * This endpoint retrieves the list of transactions and transaction information associated with a payee. You will need to enable PERM_BUSINESS_GET_FUNDING_SOURCE_TRANSACTIONS to use this endpoint.
      * 
      */
     'get'(
@@ -6341,10 +7346,9 @@ export interface PathsDictionary {
   }
   ['/v1/directdebits']: {
     /**
-     * getDirectDebitsForMandateUuid - List all Direct Debits
+     * getDirectDebitsForMandateUuid - List all direct debits
      * 
-     * Retrieve all direct debit payments associated with a direct debit mandate.
-     * The permision needed to access this endpoint is PERM_BUSINESS_GET_DIRECT_DEBITS
+     * This endpoint will retrieve all direct debit payments associated with a direct debit mandate. You will need to enable PERM_BUSINESS_GET_DIRECT_DEBITS to use this endpoint.
      * 
      */
     'get'(
@@ -6357,8 +7361,7 @@ export interface PathsDictionary {
     /**
      * getDirectDebitByUuid - Get the details of a direct debit
      * 
-     * Retrieve all details of a single direct debit collection/payment, whether successful or not.
-     * The permision needed to access this endpoint is **PERM_BUSINESS_GET_DIRECT_DEBIT**
+     * This endpoint will retrieve all details of a single direct debit collection/payment, whether successful or not. You will need to enable PERM_BUSINESS_GET_DIRECT_DEBIT to use this endpoint.
      * 
      */
     'get'(
@@ -6371,8 +7374,7 @@ export interface PathsDictionary {
     /**
      * rejectDirectDebit - Reject a direct debit
      * 
-     * This endpoint allows you to reject a direct debit payment where the status is still set to RECEIVED.
-     * Permission name PERM_BUSINESS_POST_DIRECT_DEBIT_REJECT
+     * This endpoint allows you to reject a direct debit payment where the status is still set to RECEIVED. You will need to enable PERM_BUSINESS_POST_DIRECT_DEBIT_REJECT to use this endpoint.
      * 
      */
     'post'(
@@ -6385,7 +7387,7 @@ export interface PathsDictionary {
     /**
      * getDirectDebitMandates - List all direct debit mandates
      * 
-     * The permision needed to access this endpoint is PERM_BUSINESS_GET_MANDATES
+     * This endpoint will list all mandates on your Fire account. You will need to enable PERM_BUSINESS_GET_MANDATES to use this endpoint.
      * 
      */
     'get'(
@@ -6398,8 +7400,7 @@ export interface PathsDictionary {
     /**
      * getMandate - Get the details of a direct debit mandate
      * 
-     * Retrieve all details for a direct debit mandate.
-     * The permision needed to access this endpoint is PERM_BUSINESS_GET_MANDATE
+     * This endpoint will allow you to retrieve all details for a direct debit mandate. You will need to enable PERM_BUSINESS_GET_MANDATE to use this endpoint.
      * 
      */
     'get'(
@@ -6410,13 +7411,12 @@ export interface PathsDictionary {
     /**
      * updateMandateAlias - Update direct debit mandate alias
      * 
-     * Update Direct Debit Mandate Alias
-     * The permision needed to access this endpoint is PERM_BUSINESS_PUT_MANDATE
+     * This endpoint allows you to update Direct Debit Mandate Alias. You will need to enable PERM_BUSINESS_PUT_MANDATE to use this endpoint.
      * 
      */
-    'post'(
+    'put'(
       parameters?: Parameters<Paths.UpdateMandateAlias.PathParameters> | null,
-      data?: any,
+      data?: Paths.UpdateMandateAlias.RequestBody,
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.UpdateMandateAlias.Responses.$204>
   }
@@ -6424,8 +7424,7 @@ export interface PathsDictionary {
     /**
      * cancelMandateByUuid - Cancel a direct debit mandate
      * 
-     * This endpoint allows you to cancel a direct debit mandate.
-     * The permision needed to access this endpoint is PERM_BUSINESS_POST_MANDATE_CANCEL
+     * This endpoint allows you to cancel a direct debit mandate. You will need to enable PERM_BUSINESS_POST_MANDATE_CANCEL to use this endpoint.
      * 
      */
     'post'(
@@ -6438,8 +7437,7 @@ export interface PathsDictionary {
     /**
      * activateMandate - Activate a direct debit mandate
      * 
-     * This endpoint can only be used to activate a direct debit mandate when it is in the status REJECT_REQUESTED (even if the account has direct debits disabled). This action will also enable the account for direct debits if it was previously set to be disabled.
-     * The permision needed to access this endpoint is PERM_BUSINESS_POST_MANDATE_ACTIVATE
+     * This endpoint can only be used to activate a direct debit mandate when it is in the status REJECT_REQUESTED (even if the account has direct debits disabled). This action will also enable the account for direct debits if it was previously set to be disabled. You will need to enable PERM_BUSINESS_POST_MANDATE_ACTIVATE to use this endpoint.
      * 
      */
     'post'(
@@ -6450,9 +7448,9 @@ export interface PathsDictionary {
   }
   ['/v1/batches']: {
     /**
-     * createBatchPayment - Create a new Batch
+     * createBatchPayment - Create a new batch
      * 
-     * Opens a new batch container to hold specific transaction types in a certain currency.
+     * This endpoint will create a new batch. This opens a new batch container to hold specific transaction types in a certain currency. You will need to enable PERM_BUSINESS_POST_BATCHES to use this endpoint.
      * 
      */
     'post'(
@@ -6461,9 +7459,9 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.CreateBatchPayment.Responses.$200>
     /**
-     * getBatches - List all Batches
+     * getBatches - List all batches
      * 
-     * Returns the list of batch with the specified types and statuses.
+     * This endpoint will return a list of batches with the specified types and statuses. You will need to enable PERM_BUSINESS_GET_BATCHES to use this endpoint.
      * 
      */
     'get'(
@@ -6476,7 +7474,7 @@ export interface PathsDictionary {
     /**
      * addInternalTransferBatchPayment - Add an internal transfer to a Batch
      * 
-     * Simply specify the source account, destination account, amount and a reference.
+     * This endpoint will add an internal transfer payment to an existing batch. Simply specify the source account, destination account, amount and a reference. You will need to enable PERM_BUSINESS_POST_BATCH_INTERNALTRANSFERS to use this endpoint.
      */
     'post'(
       parameters?: Parameters<Paths.AddInternalTransferBatchPayment.PathParameters> | null,
@@ -6484,9 +7482,9 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.AddInternalTransferBatchPayment.Responses.$200>
     /**
-     * getItemsBatchInternalTrasnfer - List items for an Internal Transfer Batch
+     * getItemsBatchInternalTrasnfer - List items for an internal transfer batch
      * 
-     * Returns a paginated list of items in the specified batch.
+     * This endpoint returns returns a paginated list of items in the specified batch. You will need to enable PERM_BUSINESS_GET_BATCH_INTERNALTRANSFERS to use this endpoint.
      */
     'get'(
       parameters?: Parameters<Paths.GetItemsBatchInternalTrasnfer.QueryParameters & Paths.GetItemsBatchInternalTrasnfer.PathParameters> | null,
@@ -6496,13 +7494,14 @@ export interface PathsDictionary {
   }
   ['/v1/batches/{batchUuid}/banktransfers']: {
     /**
-     * addBankTransferBatchPayment - Add a Bank Transfer to a Batch
+     * addBankTransferBatchPayment - Add a bank transfer to a batch.
      * 
-     * There are two ways to process bank transfers - by Payee ID (**Mode 1**) or by Payee Account Details (**Mode 2**).
+     * This endpoint will add a new bank transfer payment to a batch. There are two ways to process bank transfers - by Payee ID (**Mode 1**) or by Payee Account Details (**Mode 2**).
      * 
      * **Mode 1:** Use the payee IDs of existing approved payees set up against your account. These batches can be approved in the normal manner.
      * 
      * **Mode 2:** Use the account details of the payee. In the event that these details correspond to an existing approved payee, the batch can be approved as normal. If the account details are new, a batch of New Payees will automatically be created. This batch will need to be approved before the Payment batch can be approved. These payees will then exist as approved payees for future batches.
+     * You will need to enable PERM_BUSINESS_POST_BATCH_BANKTRANSFERS to use this endpoint.
      * 
      */
     'post'(
@@ -6511,9 +7510,9 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.AddBankTransferBatchPayment.Responses.$200>
     /**
-     * getItemsBatchBankTransfer - List items for a Bank Transfer Batch
+     * getItemsBatchBankTransfer - List items for a bank transfer batch
      * 
-     * Returns a paginated list of items in the specified batch.
+     * This endpoint returns a paginated list of items in the specified batch. You will need to enable PERM_BUSINESS_GET_BATCH_BANKTRANSFERS to use this endpoint.
      */
     'get'(
       parameters?: Parameters<Paths.GetItemsBatchBankTransfer.QueryParameters & Paths.GetItemsBatchBankTransfer.PathParameters> | null,
@@ -6525,7 +7524,7 @@ export interface PathsDictionary {
     /**
      * addInternationalTransferBatchPayment - Add an international transfer to a Batch
      * 
-     * International transfers must be added to a batch using the Payee ID (**Mode 1**). Payees must be set up using the web application.
+     * This endpoint allows you to add an international transfer to a batch. International transfers must be added to a batch using the Payee ID (**Mode 1**). Payees must be set up using the web application.
      * 
      * **Mode 1:** Use the payee IDs of existing approved payees set up against your account. These batches can be approved in the normal manner.
      * 
@@ -6536,9 +7535,9 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.AddInternationalTransferBatchPayment.Responses.$200>
     /**
-     * getItemsBatchInternationalTransfer - List items for an International Transfer Batch
+     * getItemsBatchInternationalTransfer - List items for an international transfer batch
      * 
-     * Returns a paginated list of items in the specified batch.
+     * Returns a paginated list of items in the specified batch. You will need to enable PERM_BUSINESS_GET_BATCH_INTERNATIONALTRANSFERS to use this endpoint.
      */
     'get'(
       parameters?: Parameters<Paths.GetItemsBatchInternationalTransfer.QueryParameters & Paths.GetItemsBatchInternationalTransfer.PathParameters> | null,
@@ -6548,9 +7547,9 @@ export interface PathsDictionary {
   }
   ['/v1/batches/{batchUuid}/internaltransfers/{itemUuid}']: {
     /**
-     * deleteInternalTransferBatchPayment - Remove an internal transfer from a Batch
+     * deleteInternalTransferBatchPayment - Remove an internal transfer from a batch
      * 
-     * Removes a Payment from the Batch (Internal Transfer). You can only remove payments before the batch is submitted for approval (while it is in the OPEN state).
+     * This endpoint will remove a Payment from the Batch (Internal Transfer). You can only remove payments before the batch is submitted for approval (while it is in the OPEN state). You will need to enable PERM_BUSINESS_DELETE_BATCH_INTERNALTRANSFERS to use this endpoint.
      */
     'delete'(
       parameters?: Parameters<Paths.DeleteInternalTransferBatchPayment.PathParameters> | null,
@@ -6560,9 +7559,9 @@ export interface PathsDictionary {
   }
   ['/v1/batches/{batchUuid}/banktransfers/{itemUuid}']: {
     /**
-     * deleteBankTransferBatchPayment - Remove a Bank Transfer from a Batch
+     * deleteBankTransferBatchPayment - Remove a bank transfer from a batch.
      * 
-     * Removes a Payment from the Batch (Bank Transfers). You can only remove payments before the batch is submitted for approval (while it is in the OPEN state).
+     * This endpoint will remove a payment from the Batch (Bank Transfers). You can only remove payments before the batch is submitted for approval (while it is in the OPEN state). You will need to enable PERM_BUSINESS_DELETE_BATCH_BANKTRANSFERS to use this endpoint.
      */
     'delete'(
       parameters?: Parameters<Paths.DeleteBankTransferBatchPayment.PathParameters> | null,
@@ -6572,9 +7571,9 @@ export interface PathsDictionary {
   }
   ['/v2/batches/{batchUuid}/internationaltransfers/{itemUuid}']: {
     /**
-     * deleteInternationalTransferBatchPayment - Remove an international transfer from a Batch
+     * deleteInternationalTransferBatchPayment - Remove an international transfer from a batch
      * 
-     * Removes a Payment from the Batch (International Transfers). You can only remove payments before the batch is submitted for approval (while it is in the OPEN state).
+     * This endpoint will remove a payment from an existing Batch (International Transfers). You can only remove payments before the batch is submitted for approval (while it is in the OPEN state). You will need to enable PERM_BUSINESS_DELETE_BATCH_INTERNATIONALTRANSFERS to use this endpoint.
      */
     'delete'(
       parameters?: Parameters<Paths.DeleteInternationalTransferBatchPayment.PathParameters> | null,
@@ -6586,7 +7585,7 @@ export interface PathsDictionary {
     /**
      * cancelBatchPayment - Cancel a batch
      * 
-     * Cancels the Batch. You can only cancel a batch before it is submitted for approval (while it is in the OPEN state).
+     * This endpoint will cancel a Batch from being processed. You can only cancel a batch before it is submitted for approval (while it is in the OPEN state). You will need to enable PERM_BUSINESS_DELETE_BATCH to use this endpoint.
      */
     'delete'(
       parameters?: Parameters<Paths.CancelBatchPayment.PathParameters> | null,
@@ -6594,9 +7593,9 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.CancelBatchPayment.Responses.$200>
     /**
-     * getDetailsSingleBatch - Get the details of a Batch
+     * getDetailsSingleBatch - Get the details of a batch
      * 
-     * Returns the details of the batch specified in the API endpoint - {batchUuid}.
+     * This endpoint will return the details of the batch specified in the API endpoint - {batchUuid}. You will need to enable PERM_BUSINESS_GET_BATCH to use this endpoint.
      */
     'get'(
       parameters?: Parameters<Paths.GetDetailsSingleBatch.PathParameters> | null,
@@ -6604,11 +7603,11 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetDetailsSingleBatch.Responses.$200>
     /**
-     * submitBatch - Submit a Batch
+     * submitBatch - Submit a batch
      * 
-     * Submits the Batch (for approval in the case of a **BANK_TRANSFER** or **INTERNATIONAL_TRANSFER**). If this is an **INTERNAL_TRANSFER** batch, the transfers are immediately queued for processing. If this is a **BANK_TRANSFER** or **INTERNATIONAL_TRANSFER** batch, this will trigger requests for approval to the firework mobile apps of authorised users. Once those users approve the batch, it is queued for processing.
+     * This endpoint allows you to submit a Batch (for approval in the case of a **BANK_TRANSFER** or **INTERNATIONAL_TRANSFER**). If this is an **INTERNAL_TRANSFER** batch, the transfers are immediately queued for processing. If this is a **BANK_TRANSFER** or **INTERNATIONAL_TRANSFER** batch, this will trigger requests for approval to the firework mobile apps of authorised users. Once those users approve the batch, it is queued for processing.
      * 
-     * You can only submit a batch while it is in the OPEN state.
+     * You can only submit a batch while it is in the OPEN state. You will need to enable PERM_BUSINESS_PUT_BATCH to use this endpoint.
      * 
      */
     'put'(
@@ -6619,9 +7618,9 @@ export interface PathsDictionary {
   }
   ['/v1/batches/{batchUuid}/approvals']: {
     /**
-     * getListofApproversForBatch - List Approvals for a Batch
+     * getListofApproversForBatch - List approvals for a batch.
      * 
-     * Returns a list of approvers for this batch.
+     * This endpoint will return a list of the approvers for the selected batch. You will need to enable PERM_BUSINESS_GET_BATCH_APPROVALS to use this endpoint.
      */
     'get'(
       parameters?: Parameters<Paths.GetListofApproversForBatch.PathParameters> | null,
@@ -6631,9 +7630,9 @@ export interface PathsDictionary {
   }
   ['/v2/users/{userId}/address']: {
     /**
-     * getUserAddress - Get the address of a User
+     * getUserAddress - Get the address of a user
      * 
-     * You can retrieve the address of a specific fire.com user
+     * This endpoint will return the address of a specific Fire user. You will need to enable PERM_BUSINESS_GET_USER_ADDRESS to use this endpoint.
      */
     'get'(
       parameters?: Parameters<Paths.GetUserAddress.PathParameters> | null,
@@ -6643,28 +7642,28 @@ export interface PathsDictionary {
   }
   ['/v2/services']: {
     /**
-     * getServices - Get Service Fees and Info
+     * getServiceFees - Get service Fees and info
      * 
-     * Returns an array of the services and fees associated with them
+     * This endpoint returns an array of the services and fees associated with them. You will need to enable PERM_BUSINESS_GET_SERVICES to use this endpoint.
      */
     'get'(
       parameters?: Parameters<UnknownParamsObject> | null,
       data?: any,
       config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetServices.Responses.$200>
+    ): OperationResponse<Paths.GetServiceFees.Responses.$200>
   }
   ['/v2/paymentrequests/{paymentRequestCode}/status']: {
     /**
-     * updatePaymentRequests - Update the status of a payment request
+     * updatePaymentRequest - Update the status of a payment request
      * 
-     * Update the status of a payment request. The payment request should be active or removed.
+     * This endpoint will update the status of a payment request. The payment request should be active or removed. You will need to enable PERM_BUSINESS_PUT_PAYMENT_REQUEST_STATUS to use this endpoint.
      * 
      */
     'put'(
-      parameters?: Parameters<Paths.UpdatePaymentRequests.PathParameters> | null,
+      parameters?: Parameters<Paths.UpdatePaymentRequest.PathParameters> | null,
       data?: any,
       config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.UpdatePaymentRequests.Responses.$204>
+    ): OperationResponse<Paths.UpdatePaymentRequest.Responses.$204>
   }
 }
 
@@ -6675,7 +7674,11 @@ export type Account = Components.Schemas.Account;
 export type AccountConfiguration = Components.Schemas.AccountConfiguration;
 export type Activity = Components.Schemas.Activity;
 export type Address = Components.Schemas.Address;
+export type Alias = Components.Schemas.Alias;
 export type ApiError = Components.Schemas.ApiError;
+export type ApiErrorV2 = Components.Schemas.ApiErrorV2;
+export type ApiErrorV3 = Components.Schemas.ApiErrorV3;
+export type AppCreated = Components.Schemas.AppCreated;
 export type Application = Components.Schemas.Application;
 export type Aspsp = Components.Schemas.Aspsp;
 export type AuthenticationData = Components.Schemas.AuthenticationData;
@@ -6683,10 +7686,13 @@ export type BankPayRefundRequest = Components.Schemas.BankPayRefundRequest;
 export type BankPayRefundResponse = Components.Schemas.BankPayRefundResponse;
 export type Batch = Components.Schemas.Batch;
 export type BatchApprover = Components.Schemas.BatchApprover;
-export type BatchItem = Components.Schemas.BatchItem;
+export type BatchItemBankTransfer = Components.Schemas.BatchItemBankTransfer;
 export type BatchItemBankTransferMode1 = Components.Schemas.BatchItemBankTransferMode1;
 export type BatchItemBankTransferMode2 = Components.Schemas.BatchItemBankTransferMode2;
 export type BatchItemDetails = Components.Schemas.BatchItemDetails;
+export type BatchItemInternalTransfer = Components.Schemas.BatchItemInternalTransfer;
+export type BatchItemInternationalTransfer = Components.Schemas.BatchItemInternationalTransfer;
+export type BatchRequest = Components.Schemas.BatchRequest;
 export type BusinessAddress = Components.Schemas.BusinessAddress;
 export type BusinessService = Components.Schemas.BusinessService;
 export type Card = Components.Schemas.Card;
@@ -6695,6 +7701,7 @@ export type Currency = Components.Schemas.Currency;
 export type DirectDebit = Components.Schemas.DirectDebit;
 export type DirectDebitByMandateUUID = Components.Schemas.DirectDebitByMandateUUID;
 export type DirectDebitDetails = Components.Schemas.DirectDebitDetails;
+export type Events = Components.Schemas.Events;
 export type FeeRule = Components.Schemas.FeeRule;
 export type FeeRuleFixedAmount = Components.Schemas.FeeRuleFixedAmount;
 export type FeeRuleMaxMin = Components.Schemas.FeeRuleMaxMin;
@@ -6743,4 +7750,5 @@ export type Transaction = Components.Schemas.Transaction;
 export type User = Components.Schemas.User;
 export type Webhook = Components.Schemas.Webhook;
 export type WebhookEvent = Components.Schemas.WebhookEvent;
+export type WebhookEvents = Components.Schemas.WebhookEvents;
 export type WebhookToken = Components.Schemas.WebhookToken;

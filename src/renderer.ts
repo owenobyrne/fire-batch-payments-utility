@@ -7,7 +7,7 @@ import { Components, Paths } from './types/fire-business-api';
 // so tell it not to worry about $ (just shut the fuck up about it!!)
 // side effect of no longer offering code completion
 declare var $ : any;
-let mAllAccounts: Paths.GetAccountById.Responses.$200[] = [];
+let mAllAccounts: Components.Schemas.Account[] = [];
 
 let mNumPayments:number = 0;
 let mValuePayments:number = 0;
@@ -159,11 +159,11 @@ $("#payment-file-preview-ok").on("click", function(event: any) {
 
     $('#select-file-modal').modal("hide")
 
-    let accountsInFileCurrency: Paths.GetAccountById.Responses.$200[] = mAllAccounts.filter((account) => {
+    let accountsInFileCurrency: Components.Schemas.Account[] = mAllAccounts.filter((account) => {
         return account.currency.code.toLowerCase() == mFileCurrency.toLowerCase();
     });
 
-    let selectedAccount: Paths.GetAccountById.Responses.$200;
+    let selectedAccount: Components.Schemas.Account;
     if (!mSourceAccountDetails) {
         selectedAccount = accountsInFileCurrency[0];
     } else {
@@ -195,9 +195,21 @@ $("#viewconfiguration").on('click', function (event : any) {
 
 $("#saveconfiguration").on('click', function (event : any) {
     event.preventDefault();
-    if ($("#clientId").val().length == 36 && $("#clientKey").val().length == 36 && $("#refreshToken").val().length ==36 ) {
+    if (( $("#clientId").val().length == 36 && $("#clientKey").val().length == 36 && $("#refreshToken").val().length == 36) 
+        || ($("#testClientId").val().length == 36 && $("#testClientKey").val().length == 36 && $("#testRefreshToken").val().length == 36) ) {
+       
         $("#saveconfiguration").addClass("loading");
-        window.api.send("save-configuration", { configs : { clientId: $("#clientId").val(), clientKey: $("#clientKey").val(), refreshToken: $("#refreshToken").val() }} );     
+        window.api.send("save-configuration", { 
+            configs : { 
+                clientId: $("#clientId").val(), 
+                clientKey: $("#clientKey").val(), 
+                refreshToken: $("#refreshToken").val(),
+                testClientId: $("#testClientId").val(), 
+                testClientKey: $("#testClientKey").val(), 
+                testRefreshToken: $("#testRefreshToken").val(),
+                useTestSystem: $("#useTestSystem").is(":checked")
+            }
+        } );     
     } else {
         $("#invalidtoken").show();
         setTimeout(function() {
@@ -215,7 +227,34 @@ $("#waiting-for-approval-modal-ok").on("click", function(event: any) {
 
 });
 
+$("#useTestSystem").on('change', function (event : any) {
+    event.preventDefault();
+    if ($("#useTestSystem").is(":checked")) {
+        $(".test-details").css("color", "#333");
+        $(".live-details").css("color", "#ccc");
+    } else {
+        $(".test-details").css("color", "#ccc");
+        $(".live-details").css("color", "#333");
+    }
+});
+
 window.api.receive("configuration-saved", function(result : any) {
+    if ($("#useTestSystem").is(":checked")) {
+        $(".test-details").css("color", "#333");
+        $(".live-details").css("color", "#ccc");
+        $("#testsystemwarning").show();
+        $("#accountdropdown").dropdown({ placeholder: "Select Test Account..." });
+        $("#processpayments").html("Process Test Payments");
+        $("#selectfile").html("Select Test Payment File");
+    } else {
+        $("#testsystemwarning").hide();
+        $(".test-details").css("color", "#ccc");
+        $(".live-details").css("color", "#333");
+        $("#accountdropdown").dropdown({ placeholder: "Select Account..." });
+        $("#processpayments").html("Process Payments");
+        $("#selectfile").html("Select Payment File");
+    }
+
     $("#saveconfiguration").removeClass("loading");
     $('#configuration-modal').modal("hide")
     $("#selectfile").prop('disabled', false);
@@ -223,15 +262,31 @@ window.api.receive("configuration-saved", function(result : any) {
 });
 
 window.api.receive("configs", function(version: string, showBeta: boolean, configs : Configuration) {
+    if (configs.useTestSystem) {
+        $("#useTestSystem").prop("checked", true);
+        $(".test-details").css("color", "#333");
+        $(".live-details").css("color", "#ccc");
+        $("#testsystemwarning").show();
+        $("#accountdropdown").dropdown({ placeholder: "Select Test Account..." });
+        $("#processpayments").html("Process Test Payments");
+        $("#selectfile").html("Select Test Payment File");
+    } else { 
+        $(".test-details").css("color", "#ccc");
+        $(".live-details").css("color", "#333");
+    }
+
     $("#clientId").val(configs.clientId);
     $("#clientKey").val(configs.clientKey);
     $("#refreshToken").val(configs.refreshToken); 
+    $("#testClientId").val(configs.testClientId);
+    $("#testClientKey").val(configs.testClientKey);
+    $("#testRefreshToken").val(configs.testRefreshToken); 
     
     $("#app-version").text(version);
 
     if (showBeta) { $("#beta-modal").modal("show"); }
 
-    if (configs.clientId.length != 36) {
+    if (configs.clientId.length != 36 && configs.testClientId.length != 36) {
         $('#configuration-modal').modal("show");
     } else {
         $("#selectfile").prop('disabled', false);
@@ -305,13 +360,13 @@ window.api.receive("batch-ok", function(result : any) {
     $('#waiting-for-approval').modal("show");
 });
 
-window.api.receive("accounts", function(allAccounts : Paths.GetAccountById.Responses.$200[], selectedAccount?: number) {
+window.api.receive("accounts", function(allAccounts : Components.Schemas.Account[], selectedAccount?: number) {
     mAllAccounts = allAccounts;
     populateAccountDropdown(allAccounts, selectedAccount);
 
 });
 
-const populateAccountDropdown = function(accounts: Paths.GetAccountById.Responses.$200[], selectedAccount?: number ) {
+const populateAccountDropdown = function(accounts: Components.Schemas.Account[], selectedAccount?: number ) {
     var values : any[] = [];
 
     accounts.forEach((account) => {
@@ -328,7 +383,12 @@ const populateAccountDropdown = function(accounts: Paths.GetAccountById.Response
     })
 
     console.log(values);
-    $('.ui.dropdown').dropdown({ placeholder: "Select Account...", values: values });
+    let placeholder = "Select Account...";
+    if ($("#useTestSystem").is(":checked")) {
+        placeholder = "Select Test Account...";
+    } 
+
+    $('.ui.dropdown').dropdown({ placeholder: placeholder, values: values });
     if (!selectedAccount) {
         $('.ui.dropdown').dropdown("restore placeholder text");
     }
