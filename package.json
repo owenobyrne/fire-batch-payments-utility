@@ -1,7 +1,7 @@
 {
   "name": "fire-batch-payments-utility",
   "productName": "Fire Batch Payments Utility",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Utility Application to process files of payments with Fire",
   "main": ".webpack/main",
   "scripts": {
@@ -55,8 +55,8 @@
     "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^7.0.2",
     "fast-xml-parser": "^4.0.11",
-    "fomantic-ui": "^2.8.8",
-    "fomantic-ui-css": "^2.8.8",
+    "fomantic-ui": "^2.9.3",
+    "fomantic-ui-css": "^2.9.3",
     "gulp": "^4.0.2",
     "openapi-client-axios": "6.0.0",
     "sha256": "^0.2.0",

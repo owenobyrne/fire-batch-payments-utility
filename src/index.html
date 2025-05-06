@@ -5,21 +5,27 @@
     <title>Fire Batch Payments Utility</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src data: https://cdn.jsdelivr.net https://fonts.gstatic.com; img-src 'self' 'unsafe-inline' data: https://cdn.jsdelivr.net; connect-src ws://localhost:3000; child-src 'self'" />
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.3/dist/semantic.min.css">
   </head>
   <body>
 
     <div  id="apptitle"></div>
 
     <div>
-      <div class="ui right aligned grid">
-        <div class="left floated left aligned six wide column">
+      <div class="ui grid">
+        <div class="eight wide column">
           <div class="ui basic segment">
-            <h3 class="ui header">Batch Payments Utility</h1>
+            <h3 class="ui header">
+              Batch Payments Utility 
+              <div id="testsystemwarning" class="ui orange horizontal label" style="display: none;">
+                <i class="exclamation triangle icon"></i>
+                Using Test System
+              </div>
+          </h3>
             
           </div>
         </div>
-        <div class="right floated right aligned six wide column">
+        <div class="right aligned eight wide column">
           <div class="ui basic segment" style="cursor: pointer;">
             <div class="title" id="viewconfiguration">
               <i class="cog icon"></i>  Configuration
@@ -146,19 +152,48 @@
           <p>Enter the details of your Fire API Token here. This token must have at least account and batch processing permissions.</p>
         </div>
         <form class="ui form">
-          <div class="field">
-            <label>Client ID</label>
-            <input type="text" id="clientId">
+          <h4 class="ui dividing header live-details">Live System API Token</h4>
+          <div class="three fields">
+            <div class="field">
+              <label class="live-details">Client ID</label>
+              <input class="live-details" type="text" id="clientId">
+            </div>
+            <div class="field">
+              <label class="live-details">Client Key</label>
+              <input class="live-details" type="password" id="clientKey">
+            </div>
+            <div class="field">
+              <label class="live-details">Refresh Token</label>
+              <input class="live-details" type="text" id="refreshToken">
+            </div>
           </div>
-          <div class="field">
-            <label>Client Key</label>
-            <input type="password" id="clientKey">
+          <h4 class="ui dividing header test-details">Test System API Token</h4>
+          <div class="three fields">
+            <div class="field">
+              <label class="test-details">Test Client ID</label>
+              <input class="test-details" type="text" id="testClientId">
+            </div>
+            <div class="field">
+              <label class="test-details">Test Client Key</label>
+              <input class="test-details" type="password" id="testClientKey">
+            </div>
+            <div class="field">
+              <label class="test-details">Test Refresh Token</label>
+              <input class="test-details" type="text" id="testRefreshToken">
+            </div>
           </div>
-          <div class="field">
-            <label>Refresh Token</label>
-            <input type="text" id="refreshToken">
+          <div class="ui grid">
+            <div class="eight wide column">
+              <div class="ui toggle checkbox">
+                <input type="checkbox" id="useTestSystem">
+                <label>Use the Test System?</label>
+              </div>
+            </div>
+            <div class="eight wide right aligned column">
+              <button class="ui button" id="saveconfiguration">Save Configuration</button>
+            </div>  
           </div>
-          <button class="ui button" id="saveconfiguration">Save Configuration</button>
+          
           
           <div id="invalidtoken" style="display: none;" class="ui tiny floating negative compact message">
             <p>Invalid API Token details.</p>
@@ -268,7 +303,7 @@
 
 
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.3/dist/semantic.min.js"></script>
 
   </body>
 </html>
