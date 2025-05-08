@@ -60,6 +60,9 @@ set GITHUB_TOKEN=xxx
 npm run publish
 
 # mac
+# check password manager
+APPLE_ID=<apple login email> 
+APPLE_ID_PASSWORD=<per-app-password> 
 GITHUB_TOKEN=xxx npm run publish
 ```
 
