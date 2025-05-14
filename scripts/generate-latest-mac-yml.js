@@ -5,8 +5,8 @@ const yaml = require('js-yaml');
 
 const APP_VERSION = require('../package.json').version;
 const DIST_DIR = path.resolve(__dirname, '../out/make/zip/darwin/x64'); // adjust if using arm64 or universal
-const FILE_PREFIX = 'Fire.Batch.Payments.Utility-darwin-x64'; // adjust to your actual app name
-const FILE_NAME = `${FILE_PREFIX}-${APP_VERSION}-mac.zip`;
+const FILE_PREFIX = 'Fire Batch Payments Utility-darwin-x64'; // adjust to your actual app name
+const FILE_NAME = `${FILE_PREFIX}-${APP_VERSION}.zip`;
 const FILE_PATH = path.join(DIST_DIR, FILE_NAME);
 
 async function generateYml() {

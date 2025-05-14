@@ -31,7 +31,10 @@ const config = {
         "name": '@electron-forge/maker-dmg',
         "platforms": ['darwin'],
         "config": { 
-            name: 'fire-batch-payments-utility',
+            artifactName: (config) => { 
+              const pkg = require('./package.json');
+              return "fire-batch-payments-utility-${pkg.version}";
+            },
             icon: "assets/app-icon.icns",
             background: "assets/dmg-background.tiff",
             debug: true,
