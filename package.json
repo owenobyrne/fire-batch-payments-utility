@@ -9,7 +9,9 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
-    "lint": "eslint --ext .ts ."
+    "lint": "eslint --ext .ts .",
+    "generate-mac-yml": "node scripts/generate-latest-mac-yml.js",
+    "make-and-publish-mac": "npm run make && npm run generate-mac-yml && npm run publish"
   },
   "keywords": [],
   "author": "Owen O Byrne <owen.obyrne@fire.com>",
