@@ -61,9 +61,11 @@ npm run publish
 
 # mac
 # check password manager
-APPLE_ID=<apple login email> 
-APPLE_ID_PASSWORD=<per-app-password> 
-GITHUB_TOKEN=xxx npm run publish
+export APPLE_ID=<apple login email> 
+export APPLE_ID_PASSWORD=<per-app-password> 
+export GITHUB_TOKEN=xxx 
+# different command as we need to generate the latest-mac.yml file
+npm run make-and-publish-mac
 ```
 
 This will push a new exe to Github which will notify existing installs to update.
