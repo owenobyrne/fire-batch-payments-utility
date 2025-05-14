@@ -41,8 +41,12 @@ const config = {
               { x: 400, y: 250, type: "link", path: "/Applications", name: "Applications" }
             ],
             additionalDMGOptions: { }
-        }
-      }
+        },
+      },
+      {
+        "name": "@electron-forge/maker-zip",
+        "platforms": ["darwin"]
+      }    
     ],
     "plugins": [
       {
@@ -74,7 +78,8 @@ const config = {
           owner: 'owenobyrne',
           name: 'fire-batch-payments-utility'
         },
-        prerelease: false
+        "prerelease": false,
+        "draft": true
       }
     }
 	]
